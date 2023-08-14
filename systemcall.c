@@ -22,6 +22,7 @@ int main()
 	int e = mknod("destFIFO",S_IFIFO,0);
 	if(e<0)
 		perror("Failed");
+	
 	return 0;
 }
 
