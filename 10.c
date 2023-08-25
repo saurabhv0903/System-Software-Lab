@@ -14,8 +14,9 @@ int main(){
     else{
     	printf("File opened\n");
     }
+    //lseek(filedes, 0L, SEEK_SET);
 
-    char buf[10]="Hello hii";
+    char buf[10]="Hello hi\n";
     int char_write = write(filedes, buf, 10);
     printf("write 1 value: %d \n",char_write);
 
