@@ -6,11 +6,11 @@
 int main(){
 	while(1){
         
-	creat("f1.txt",O_RDWR);
-	creat("f2.txt",O_RDWR);
-	creat("f3.txt",O_RDWR);
-	creat("f4.txt",O_RDWR);
-	creat("f5.txt",O_RDWR);
+	creat("/home/saurabhv/Ss_Lab/io_files/f1.txt",O_RDWR);
+	creat("/home/saurabhv/Ss_Lab/io_files/f2.txt",O_RDWR);
+	creat("/home/saurabhv/Ss_Lab/io_files/f3.txt",O_RDWR);
+	creat("/home/saurabhv/Ss_Lab/io_files/f4.txt",O_RDWR);
+	creat("/home/saurabhv/Ss_Lab/io_files/f5.txt",O_RDWR);
 	sleep(10);
 
 	}

@@ -7,7 +7,7 @@
 int main()
 {
 
-	int v = symlink("dest.txt","destSL.txt");
+	int v = symlink("/home/saurabhv/Ss_Lab/io_files/dest.txt","/home/saurabhv/Ss_Lab/io_files/destSL.txt");
 	if(v<0){
 		perror("Failed");
 		return 1;
@@ -17,7 +17,7 @@ int main()
 	}
 
 
-	int f = link("dest.txt","destHL.txt");
+	int f = link("/home/saurabhv/Ss_Lab/io_files/dest.txt","/home/saurabhv/Ss_Lab/io_files/destHL.txt");
 	if(f<0){
 		perror("Failed");
 		return 1;
@@ -28,7 +28,7 @@ int main()
 
 
 
-	int e = mknod("destFIFO",S_IFIFO|0666,0);    //returns -1 for failure , 0 on success
+	int e = mknod("/home/saurabhv/Ss_Lab/io_files/destFIFO",S_IFIFO|0666,0);    //returns -1 for failure , 0 on success
 	if(e<0)
 		perror("Failed");
 	if(v==0){

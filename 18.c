@@ -2,13 +2,13 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
-
+#define FNAME "/home/saurabhv/Ss_Lab/io_files/record.txt"
 struct data {
 	int val;
 };
 
 int main() {
-	int fd = open("record.txt", O_RDWR);
+	int fd = open(FNAME, O_RDWR);
 	while(1) {
 		int option;
 		printf("Enter record (1-3) to lock, or -1 to quit: ");

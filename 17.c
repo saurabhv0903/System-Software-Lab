@@ -1,12 +1,14 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
+#define FNAME "/home/saurabhv/Ss_Lab/io_files/17_ticket.txt"
+
 struct data{
 	int ticket;
 };
 int main(){
 	
-        int fd = open("17_ticket.txt", O_RDWR);
+        int fd = open(FNAME, O_RDWR);
         if(fd==-1){
                 printf("Failed to open the file");
         }

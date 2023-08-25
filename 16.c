@@ -2,10 +2,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
+#define FNAME "/home/saurabhv/Ss_Lab/io_files/file4.txt"
 
 int main(){
 	struct flock lock;
-	int fd=open("file4.txt",O_RDWR);
+	int fd=open(FNAME,O_RDWR);
    	lock.l_type = F_WRLCK;
    	lock.l_whence = SEEK_SET;
    	lock.l_start = 0;

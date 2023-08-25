@@ -1,25 +1,26 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
+#define FNAME "/home/saurabhv/Ss_Lab/io_files/file4.txt"  
 int main(){
 
-	int fd = open("file4.txt", O_RDWR);
+	int fd = open(FNAME, O_RDWR);
 	int mode = fcntl(fd, F_GETFL);
 	switch(mode){
     		case 32768 : 
-			printf("r"); 
+			printf("r\n"); 
 			break;
     		case 32769 : 
-			printf("w"); 
+			printf("w\n"); 
 			break;
     		case 33793 : 
-			printf("a"); 
+			printf("a\n"); 
 			break;
     		case 32770 : 
-			printf("r+ || w+"); 
+			printf("r+ || w+\n"); 
 			break;
     		case 32794 : 
-			printf("a+"); 
+			printf("a+\n"); 
 			break;
 	}
 	

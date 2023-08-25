@@ -2,7 +2,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#define FNAME "file4.txt"
+#define FNAME "/home/saurabhv/Ss_Lab/io_files/file4.txt"
 
 int main(){ 
     int filedes;
