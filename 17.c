@@ -33,6 +33,8 @@ int main(){
 	printf("Value of ticket after: %d\n",ticket_info.ticket);
 	write(fd, &ticket_info, sizeof(ticket_info));
 	
+	printf("Press enter to unlock");
+	getchar();
 	lock.l_type=F_UNLCK;
 	fcntl(fd,F_SETLK,&lock);
 	
