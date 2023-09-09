@@ -1,3 +1,19 @@
+/*
+============================================================================
+Name : 17.c
+Author : Saurabh Varade
+Description : Write a program to simulate online ticket reservation. 
+		Implement write lock 
+		Write a program to open a file, store a ticket number and exit. 
+		Write a separate program, to open the file, implement write lock, 
+		read the ticket number, increment the number and print 
+		the new ticket number then close the file.
+
+Date: 25th Aug, 2023
+============================================================================
+*/
+
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -22,7 +38,8 @@ int main(){
 	lock.l_pid = getpid();
 
 	fcntl(fd,F_SETLKW,&lock);
-        struct data ticket_info;
+        
+	struct data ticket_info;
         read(fd, &ticket_info, sizeof(ticket_info));
 
 	printf("Value of ticket before: %d\n",ticket_info.ticket);

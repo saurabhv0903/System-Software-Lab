@@ -8,6 +8,7 @@
 int main(){ 
     int filedes;
     filedes=open(FNAME, O_RDWR);
+    
     if(filedes==-1){
     	perror("Failed\n");
     }
@@ -15,11 +16,11 @@ int main(){
     	printf("File opened\n");
     }
     //lseek(filedes, 0L, SEEK_SET);
-
+    
     char buf[10]="Hello hi\n";
     int char_write = write(filedes, buf, 10);
     printf("write 1 value: %d \n",char_write);
-
+    
     int lseekreturn = lseek(filedes, 10, SEEK_CUR);
     printf("lseek return value: %d \n",lseekreturn);
     
