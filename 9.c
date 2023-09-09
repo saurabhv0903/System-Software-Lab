@@ -1,3 +1,14 @@
+/*
+============================================================================
+Name : 9.c
+Author : Saurabh Varade
+Description : Write a program to print the following information about a given file
+
+Date: 24th Aug, 2023
+============================================================================
+*/
+
+
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -10,8 +21,8 @@ int main(){
 //	scanf("%s",path);
 
 	if(stat("f7s.txt", &info)==-1){
-	perror("stat");
-	return 0;
+		perror("stat");
+		return 0;
 	}
 
 	printf("%lu",info.st_ino);

@@ -1,3 +1,19 @@
+/*
+============================================================================
+Name : 27.c
+Author : Saurabh Varade
+Description : Write a program to execute ls -Rl by the following system calls
+ 		a. execl
+ 		b. execlp
+ 		c. execle
+ 		d. execv
+ 		e. execvp
+
+Date: 1st Sept, 2023
+============================================================================
+*/
+
+
 #include <stdio.h>
 #include <unistd.h>
 
@@ -29,7 +45,7 @@ int main(){
 			//execlp
 			printf("-------------execl command:---------------\n");
 			printf("\n");
-			execlp("ls","ls","-Rl",(char *) NULL);
+			execlp("ls","ls","-Rl",(char *) NULL);				//p is path in execlp
 
 			printf("\n");
 			break;
@@ -40,7 +56,7 @@ int main(){
 			printf("\n");
 			char *env[] = { "HOME=/usr/home", "LOGNAME=home", (char *)0 };
            		
-           		execle ("/bin/ls", "ls", "-Rl", (char *)0, env);
+           		execle ("/bin/ls", "ls", "-Rl", (char *)0, env);		//e is enviornment
 			
 			printf("\n");
 			break;

@@ -19,8 +19,22 @@ Date: 25th Aug, 2023.
 int main(){
 	struct flock lock;
 	int fd=open(FNAME,O_RDWR);
-   	
-	lock.l_type = F_WRLCK;				//write lock
+	//int inp;
+	//printf("Enter 1 to read and 2 to write\n");
+	//scanf("%d\n", &inp);
+	//printf("%d\n",inp);
+
+	//if(inp==2)	
+	//	lock.l_type = F_WRLCK;				//write lock
+	
+	//else if(inp==1)
+	//	lock.l_type = F_RDLCK;
+	//else {
+	//	printf("Enter r or w\n");
+	//	return 0;
+	//}
+	
+	lock.l_type= F_WRLCK;
    	lock.l_whence = SEEK_SET;
 
 	//start indicates the start of lock. therefore it is zero. keeping len 0 

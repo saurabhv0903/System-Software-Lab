@@ -1,3 +1,13 @@
+/*
+============================================================================
+Name : 7.c
+Author : Saurabh Varade
+Description : Write a program to copy file1 into file2 ($cp file1 file2)
+
+Date: 14th Aug, 2023
+============================================================================
+*/
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>

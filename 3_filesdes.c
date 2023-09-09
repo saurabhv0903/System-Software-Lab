@@ -1,3 +1,14 @@
+/*
+============================================================================
+Name : 3_filesdes.c
+Author : Saurabh Varade
+Description : Write a program to create a file and print the file descriptor value. 
+		Use creat ( ) system call
+
+Date: 14th Aug, 2023
+============================================================================
+*/
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>

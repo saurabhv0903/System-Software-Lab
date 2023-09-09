@@ -1,3 +1,13 @@
+/*
+============================================================================
+Name : 23.c
+Author : Saurabh Varade
+Description : Write a program to create a Zombie state of the running program
+
+Date: 1st Sept, 2023
+============================================================================
+*/
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -21,7 +31,7 @@ int main(){
 		//so that child will complete its execution 
 		//and become a zombie process
 		sleep(50);
-		//wait(0);
+		
 		
 	}
 	

@@ -1,8 +1,20 @@
+/*
+============================================================================
+Name : 11.c
+Author : Saurabh Varade
+Description : Write a program to open a file, duplicate the file descriptor 
+		and append the file with both the descriptors 
+		and check whether the file is updated properly or not
+
+Date: 25th Aug, 2023
+============================================================================
+*/
+
 #include <unistd.h>
 #include <stdio.h>
 #include <fcntl.h>
 
-void readFile(char *file) {
+void readfile(char *file) {
 	int fd_read = open(file, O_RDONLY);
 	while(1) {
 		char buffer;
@@ -14,91 +26,107 @@ void readFile(char *file) {
 	}
 }
 
-int using_dup(char *file) {
-	int original_fd = open(file, O_RDWR);
-	if(original_fd == -1) {
-		printf("Could not open file\n");
+int f_dup(char *file) {
+	int og_fd = open(file, O_RDWR);
+	if(og_fd == -1) {
+		printf("dup file open erorrrrr\n");
 		return -1;
 	}
-	// Duplicate fd
-	int dup_fd = dup(original_fd);
-	if(dup_fd == -1) {
-		printf("Could not duplicate using dup()\n");
-		return -1;
-	}
-	// Write and read using original descriptor
-	char original_buff[] = "original fd\n";
-	int original_write = write(original_fd, &original_buff, sizeof(original_buff));
-	readFile(file);
-	printf("\n");
-	// Write and read using duplicate descriptor
-	char dup_buff[] = "dup buff\n";
-	int dup_write = write(dup_fd, &dup_buff, sizeof(dup_buff));
-	readFile(file);
 
-	// Close fd's 
-	close(original_fd);
+	int dup_fd = dup(og_fd);			//duplicate fd suing dup
+	if(dup_fd == -1) {
+		printf("duplicating fd failed using dup\n");
+		return -1;
+	}
+
+	// Write and read using original descriptor
+	char og_buff[] = "dup original fd\n";
+	int og_write = write(og_fd, &og_buff, sizeof(og_buff));
+	printf("Reading after writing using og dup\n");	
+	readfile(file);
+	printf("\n");
+	
+	// Write usng dup fd
+	char dup_buff[] = "dup duplicate fd\n";
+	int dup_write = write(dup_fd, &dup_buff, sizeof(dup_buff));
+	printf("Reading after writing using duplicate dup\n");
+	readfile(file);
+
+	// Close fds 
+	close(og_fd);
 	close(dup_fd);
 }
 
-int using_dup2(char *file) {
-	int original_fd = open(file, O_RDWR);
-	if(original_fd == -1) {
-		printf("Could not open file\n");
+int f_dup2(char *file) {
+	int og_fd = open(file, O_RDWR);
+	
+	if(og_fd == -1) {
+		printf("dup2 file open erorrrrrrr\n");
 		return -1;
 	}
-	int dup_fd = dup2(original_fd, 5);
+	
+	int dup_fd = dup2(og_fd, 6);
 	if(dup_fd == -1) {
-		printf("Could not duplicate using dup()\n");
+		printf("duplicating fd failed using dup2\n");
 		return -1;
 	}
-	char original_buff[] = "original fd\n";
-	int original_write = write(original_fd, &original_buff, sizeof(original_buff));
-	readFile(file);
-	printf("\n");
-	// Write and read using duplicate descriptor
-	char dup_buff[] = "dup buff\n";
-	int dup_write = write(dup_fd, &dup_buff, sizeof(dup_buff));
-	readFile(file);
 
-	// Close fd's 
-	close(original_fd);
+	char og_buff[] = "dup2 original fd\n";
+	int og_write = write(og_fd, &og_buff, sizeof(og_buff));
+	printf("Reading after writing using og dup2\n");	
+	readfile(file);
+	printf("\n");
+
+	//write using dup2 fd
+	char dup_buff[] = "dup2 duplicate buff\n";
+	int dup_write = write(dup_fd, &dup_buff, sizeof(dup_buff));
+	printf("Reading after writing using duplicate dup\n");
+	readfile(file);
+
+	// Close fds
+	close(og_fd);
 	close(dup_fd);
 }
 
-int using_fcntl(char *file) {
-	int original_fd = open(file, O_RDWR);
-	if(original_fd == -1) {
-		printf("Could not open file\n");
+int f_fcntl(char *file) {
+	int og_fd = open(file, O_RDWR);
+	if(og_fd == -1) {
+		printf("fcntl file open erorrrrr\n");
 		return -1;
 	}
-	int dup_fd = fcntl(original_fd, F_DUPFD);
-	if(dup_fd == -1) {
-		printf("Could not duplicate using dup()\n");
-		return -1;
-	}
-	// Write and read using original descriptor
-	char original_buff[] = "original fd\n";
-	int original_write = write(original_fd, &original_buff, sizeof(original_buff));
-	readFile(file);
-	printf("\n");
-	// Write and read using duplicate descriptor
-	char dup_buff[] = "dup buff\n";
-	int dup_write = write(dup_fd, &dup_buff, sizeof(dup_buff));
-	readFile(file);
 
-	// Close fd's 
-	close(original_fd);
+	int dup_fd = fcntl(og_fd, F_DUPFD);
+	if(dup_fd == -1) {
+		printf("Duplicating fd failed using fcntl\n");
+		return -1;
+	}
+
+	//using original fd
+	char og_buff[] = "fcntl original fd\n";
+	int og_write = write(og_fd, &og_buff, sizeof(og_buff));
+	printf("Reading after writing using og fcntl\n");
+	readfile(file);
+	printf("\n");
+
+	// write using fcntl fd
+	char dup_buff[] = "fcntl duplicate buff\n";
+	int dup_write = write(dup_fd, &dup_buff, sizeof(dup_buff));
+	printf("Reading after writing using duplicate fcntl\n");
+	readfile(file);
+
+	// Close fds 
+	close(og_fd);
 	close(dup_fd);
 }
 
 int main(int argc, char *args[]) {
 	if(argc != 2) {
-		printf("Expected 1 argument\n");
+		printf("Enter 1 argument\n");
 		return -1;
 	}
-	using_dup(args[1]);
-	using_dup2(args[1]);
-	using_fcntl(args[1]);
+
+	f_dup(args[1]);
+	f_dup2(args[1]);
+	f_fcntl(args[1]);
 	return 0;
 }
