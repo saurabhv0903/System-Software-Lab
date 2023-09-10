@@ -18,23 +18,29 @@ Date: 25th Aug, 2023.
 
 int main(){
 	struct flock lock;
+	
 	int fd=open(FNAME,O_RDWR);
-	//int inp;
-	//printf("Enter 1 to read and 2 to write\n");
-	//scanf("%d\n", &inp);
-	//printf("%d\n",inp);
+	if(fd==-1){
+		printf("file open erorrrrrrr\n");
+	}
+	
+	int inp;
+	printf("Enter 1 to read and 2 to write\n");
+	scanf("%d", &inp);
 
-	//if(inp==2)	
-	//	lock.l_type = F_WRLCK;				//write lock
+	if(inp==2){	
+		lock.l_type = F_WRLCK;				//write lock
+		printf("Implemented write lock\n");
+	}
+	else if(inp==1){
+		lock.l_type = F_RDLCK;
+		printf("Implemented read lock\n");
+	}
+	else {
+		printf("Enter r or w\n");
+		return 0;
+	}
 	
-	//else if(inp==1)
-	//	lock.l_type = F_RDLCK;
-	//else {
-	//	printf("Enter r or w\n");
-	//	return 0;
-	//}
-	
-	lock.l_type= F_WRLCK;
    	lock.l_whence = SEEK_SET;
 
 	//start indicates the start of lock. therefore it is zero. keeping len 0 
@@ -52,13 +58,15 @@ int main(){
 	
 	printf("Enter to unlock\n");
 	getchar();
+	getchar();
 	
 	printf("unlocked\n");
 	lock.l_type=F_UNLCK;
 	
 	//setlk will relase the lock if l_type is F_UNLCK and aquire the lock if type is F_RDLCK or F_WRLCK
-	fcntl(fd,F_SETLK,&lock);
+	int fcntlr = fcntl(fd,F_SETLK,&lock);
 	
+	printf("%d\n",fcntlr);
 	printf("done\n");
 
 	return 0; 
