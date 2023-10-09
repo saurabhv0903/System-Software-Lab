@@ -1,3 +1,15 @@
+/*
+============================================================================
+Name : 16.c
+Author : Saurabh Varade
+Description : Write a program to send and receive data from parent to child vice versa. 
+	      Use two way communication.
+
+Date: 9th October, 2023
+============================================================================
+*/
+
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>

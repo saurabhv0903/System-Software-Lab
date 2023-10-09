@@ -1,3 +1,14 @@
+/*
+============================================================================
+Name : 15.c
+Author : Saurabh Varade
+Description : Write a simple program to send some data from parent to the child process
+
+Date: 10th September, 2023
+============================================================================
+*/
+
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>

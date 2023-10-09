@@ -1,3 +1,19 @@
+/*
+============================================================================
+Name : 19.c
+Author : Saurabh Varade
+Description : Create a FIFO file by
+		a. mknod command
+		b. mkfifo command
+		c. use strace command to find out, which command (mknod or mkfifo) is better.
+		d. mknod system call
+		e. mkfifo library function
+
+Date: 9th October, 2023
+============================================================================
+*/
+
+
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/stat.h>
