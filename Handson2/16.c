@@ -57,7 +57,7 @@ int main()
                 close(fd2[0]);
 		
 		read(fd1[0], buff2, sizeof(buff2));
-                printf("Message to child from parent: %s\n", buff2);
+                printf("Message to parent from child: %s\n", buff2);
 
                 printf("\nParent writing to child. Enter the message: ");
                 scanf("%[^\n]", buff1);
