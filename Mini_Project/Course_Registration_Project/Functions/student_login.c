@@ -4,16 +4,17 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include "/home/saurabh/MTech/SS/Handson/Project/Course_Registration_Project/Functions/student_manage.c"
+#include "/home/saurabh/MTech/SS/Handson/Mini_Project/Course_Registration_Project/Functions/student_manage.c"
 
 #define PORT 8085
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 4096
 
 
 int student_login(int client_socket){
 
     char buffer[BUFFER_SIZE];
     char write_buffer[BUFFER_SIZE];
+    struct Student loggedin_student;
 
     char student_username1[20] ;
     char student_password1[20] ;
@@ -68,7 +69,7 @@ int student_login(int client_socket){
         lock.l_len = sizeof(struct Student);
         lock.l_pid = getpid();
 
-        if (fcntl(fd_student, F_SETLK, &lock) == -1) {
+        if (fcntl(fd_student, F_SETLKW, &lock) == -1) {
             perror("Error acquiring file lock");
             close(fd_student);
             return 0;
@@ -86,13 +87,14 @@ int student_login(int client_socket){
                 printf("Username: %s\n", student.username);
                 printf("Name: %s\n", student.name);
                 printf("Status: %d\n", student.status);
+                loggedin_student = student;
                 // for (int i = 0; i < 4; i++) {
                 //     printf("Course Enrolled %d: %s\n", i + 1, student.course_enrolled[i]);
                 // }
                 printf("\n");
                 
                 wrong_credentials = 0;
-                student_manage(client_socket);
+                student_manage(loggedin_student, client_socket);
                 break;
             }
             else{
@@ -103,7 +105,7 @@ int student_login(int client_socket){
         }
 
         lock.l_type=F_UNLCK;
-        fcntl(fd_student,F_SETLK,&lock);
+        fcntl(fd_student,F_SETLKW,&lock);
     }
 
 

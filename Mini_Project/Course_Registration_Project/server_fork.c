@@ -5,12 +5,13 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include "/home/saurabh/MTech/SS/Handson/Project/Course_Registration_Project/Functions/admin_login.c"
-#include "/home/saurabh/MTech/SS/Handson/Project/Course_Registration_Project/Functions/student_login.c"
+#include "/home/saurabh/MTech/SS/Handson/Mini_Project/Course_Registration_Project/Functions/admin_login.c"
+#include "/home/saurabh/MTech/SS/Handson/Mini_Project/Course_Registration_Project/Functions/student_login.c"
+#include "/home/saurabh/MTech/SS/Handson/Mini_Project/Course_Registration_Project/Functions/faculty_login.c"
 
 #define PORT 8085
 #define MAX_CLIENTS 20
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 4096
 
 void handle_client(int client_socket) {
     // char buffer[BUFFER_SIZE];
@@ -46,8 +47,7 @@ void handle_client(int client_socket) {
                 break;
             }
             case '3': {
-                char response[] = "You selected Teacher\n";
-                send(client_socket, response, sizeof(response), 0);
+                faculty_login(client_socket);
                 break;
             }
             default: {

@@ -8,7 +8,7 @@
 
 
 #define PORT 8085
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 4096
 
 int main(int argc, char **argv) {
     int client_socket;
@@ -63,6 +63,7 @@ int main(int argc, char **argv) {
     
     
         //send code
+        // fgets(write_buffer, sizeof(write_buffer), stdin);
         scanf("%s", write_buffer);
         send(client_socket, write_buffer, strlen(write_buffer), 0);
     }

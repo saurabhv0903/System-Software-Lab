@@ -4,12 +4,12 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include "/home/saurabh/MTech/SS/Handson/Project/Course_Registration_Project/Record_structures/create_student.c"
-#include "/home/saurabh/MTech/SS/Handson/Project/Course_Registration_Project/Record_structures/create_faculty.c"
+#include "/home/saurabh/MTech/SS/Handson/Mini_Project/Course_Registration_Project/Record_structures/create_student.c"
+#include "/home/saurabh/MTech/SS/Handson/Mini_Project/Course_Registration_Project/Record_structures/create_faculty.c"
 
 
 #define PORT 8085
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 4096
 
 char send_response[BUFFER_SIZE];
 char read_response[BUFFER_SIZE];
@@ -60,7 +60,7 @@ int add_student(int client_socket){
     lock.l_len = sizeof(struct Student);
     lock.l_pid = getpid();
     
-    fcntl(fd_student, F_SETLK, &lock);
+    fcntl(fd_student, F_SETLKW, &lock);
     printf("Lock acquired on Student.txt\n");
 
 
@@ -150,7 +150,7 @@ int add_student(int client_socket){
     write(fd_student, &new_student, sizeof(new_student));    
     
     lock.l_type=F_UNLCK;
-	fcntl(fd_student,F_SETLK,&lock);
+	fcntl(fd_student,F_SETLKW,&lock);
     
     close(fd_student);
 
@@ -170,7 +170,7 @@ int view_students(int client_socket){
     lock.l_len = sizeof(struct Student);
     lock.l_pid = getpid();
 
-    if (fcntl(fd_student, F_SETLK, &lock) == -1) {
+    if (fcntl(fd_student, F_SETLKW, &lock) == -1) {
         perror("Error acquiring file lock");
         close(fd_student);
         return 0;
@@ -215,7 +215,7 @@ int view_students(int client_socket){
 
     }
     lock.l_type=F_UNLCK;
-	fcntl(fd_student,F_SETLK,&lock);
+	fcntl(fd_student,F_SETLKW,&lock);
     return 0;
 }
 
@@ -246,7 +246,7 @@ int add_faculty(int client_socket){
     lock.l_len = sizeof(struct Faculty);
     lock.l_pid = getpid();
     
-    fcntl(fd_faculty, F_SETLK, &lock);
+    fcntl(fd_faculty, F_SETLKW, &lock);
     printf("Lock acquired on Faculty.txt\n");
 
 
@@ -314,11 +314,11 @@ int add_faculty(int client_socket){
         read_response[strlen(read_response) - 1] = '\0';
     }
 
-    new_faculty.id = atoi(string_response);
+    strcpy(new_faculty.id, string_response);
 
 
 
-    strcpy(send_response, "Enter activation status for Faculty: ");
+    strcpy(send_response, "Enter department for Faculty: ");
     send(client_socket, send_response, strlen(send_response), 0);
 
     bzero(read_response, sizeof(read_response));
@@ -331,12 +331,28 @@ int add_faculty(int client_socket){
         read_response[strlen(read_response) - 1] = '\0';
     }
 
-    new_faculty.status = atoi(string_response);
+    strcpy(new_faculty.dept, string_response);
+
+    
+    strcpy(send_response, "Enter email for Faculty: ");
+    send(client_socket, send_response, strlen(send_response), 0);
+
+    bzero(read_response, sizeof(read_response));
+    recv(client_socket, read_response, sizeof(read_response), 0);
+
+    strcpy(string_response,read_response);
+    printf("%s\n", string_response);
+    
+    if (strchr(read_response, '\n') != NULL) {
+        read_response[strlen(read_response) - 1] = '\0';
+    }
+
+    strcpy(new_faculty.email, string_response);
      
     write(fd_faculty, &new_faculty, sizeof(new_faculty));    
     
     lock.l_type=F_UNLCK;
-	fcntl(fd_faculty,F_SETLK,&lock);
+	fcntl(fd_faculty,F_SETLKW,&lock);
     
     close(fd_faculty);
 
@@ -355,7 +371,7 @@ int view_faculty(int client_socket){
     lock.l_len = sizeof(struct Faculty);
     lock.l_pid = getpid();
 
-    if (fcntl(fd_faculty, F_SETLK, &lock) == -1) {
+    if (fcntl(fd_faculty, F_SETLKW, &lock) == -1) {
         perror("Error acquiring file lock");
         close(fd_faculty);
         return 0;
@@ -372,8 +388,6 @@ int view_faculty(int client_socket){
     strcpy(string_response,read_response);
     printf("%s\n", string_response);
 
-    int client_input = atoi(string_response);
-
 
     if (strchr(read_response, '\n') != NULL) {
         read_response[strlen(read_response) - 1] = '\0';
@@ -382,17 +396,18 @@ int view_faculty(int client_socket){
 
     while (read(fd_faculty, &faculty, sizeof(struct Faculty)) > 0) {
         // Process the faculty record
-        printf("Roll: %d\n", faculty.id);
+        printf("ID: %s\n", faculty.id);
         printf("Username: %s\n", faculty.username);
         printf("Name: %s\n", faculty.name);
-        printf("Status: %d\n", faculty.status);
-        // for (int i = 0; i < 4; i++) {
-        //     printf("Course Offered %d: %s\n", i + 1, student.course_offered[i]);
-        // }
+
         printf("\n");
-        
-        if(client_input == faculty.id){
-            sprintf(send_response, "ID: %d\nUsername: %s\nName: %s\nActivation Status: %d\n\nEnter the Option:\n1. Add Student\n2. Add Faculty\n3. View Students\n4. Activate Student\n5. Decativate Student\n6. Update Student Details\n7. View Faculty\n8. Update Faculty\n9. Logout\n", faculty.id, faculty.username, faculty.name, faculty.status );
+        char client_input[10];
+        strcpy(client_input, string_response);
+        printf("client input: %s\n", client_input);
+
+        if( strcmp(client_input, faculty.id) == 0){
+            printf("faculty found\n");
+            sprintf(send_response, "ID: %s\nUsername: %s\nName: %s\n\nEnter the Option:\n1. Add Student\n2. Add Faculty\n3. View Students\n4. Activate Student\n5. Decativate Student\n6. Update Student Details\n7. View Faculty\n8. Update Faculty\n9. Logout\n", faculty.id, faculty.username, faculty.name );
 
             send(client_socket, send_response, strlen(send_response), 0);
             break;
@@ -400,7 +415,7 @@ int view_faculty(int client_socket){
 
     }
     lock.l_type=F_UNLCK;
-	fcntl(fd_faculty,F_SETLK,&lock);
+	fcntl(fd_faculty,F_SETLKW,&lock);
     return 0;
 }
 

@@ -3,15 +3,15 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-#define Faculty_Path "/home/saurabh/MTech/SS/Handson/Project/Course_Registration_Project/database/Faculty.txt"
+#define Faculty_Path "/home/saurabh/MTech/SS/Handson/Mini_Project/Course_Registration_Project/database/Faculty.txt"
 
 struct Faculty{
-    int id;
+    char id[10];
     char username[50];
     char password[50];
     char name[50];
-    int status;
-    char course_offered[4][30];
+    char dept[50];
+    char email[50];
 };
 
 int create_faculty(){

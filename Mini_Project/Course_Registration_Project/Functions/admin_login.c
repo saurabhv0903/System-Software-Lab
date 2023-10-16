@@ -4,10 +4,10 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include "/home/saurabh/MTech/SS/Handson/Project/Course_Registration_Project/Functions/admin.c"
+#include "/home/saurabh/MTech/SS/Handson/Mini_Project/Course_Registration_Project/Functions/admin.c"
 
 #define PORT 8085
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 4096
 
 
 int admin_login(int client_socket){

@@ -3,7 +3,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-#define Student_Path "/home/saurabh/MTech/SS/Handson/Project/Course_Registration_Project/database/Student.txt"
+#define Student_Path "/home/saurabh/MTech/SS/Handson/Mini_Project/Course_Registration_Project/database/Student.txt"
 
 struct Student{
     int roll;
@@ -11,7 +11,8 @@ struct Student{
     char password[50];
     char name[50];
     int status;
-    char course_enrolled[4][30];
+    char email[50];
+    // char course_enrolled[4][30];
 };
 
 int create_student(){

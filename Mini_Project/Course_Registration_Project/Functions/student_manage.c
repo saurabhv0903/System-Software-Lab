@@ -7,13 +7,12 @@
 // #include "/home/saurabh/MTech/SS/Handson/Project/Course_Registration_Project/Record_structures/create_student.c"
 // #include "/home/saurabh/MTech/SS/Handson/Project/Course_Registration_Project/Record_structures/create_faculty.c"
 
-
 #define PORT 8085
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 4096
 
 char send_response[BUFFER_SIZE];
 char read_response[BUFFER_SIZE];
-
+char menu[] = "\nStudent logged in\n\nEnter the Option:\n1. View all courses\n2. Enroll new course\n3. Drop course\n4. View Enrolled details\n5. Chnage password\n6. Logout\n";
 /*
 struct Student{
     char username[50];
@@ -35,10 +34,63 @@ struct Faculty{
 
 */
 
+int view_offering_course(struct Student loggedin_student, int client_socket){
+
+    int fd_course = open("course.txt",O_RDWR);
+	if(fd_course == -1){
+		perror("File error");
+	}
+    
+    char string_response[BUFFER_SIZE];
+    char course_entries[BUFFER_SIZE];
+    
+    struct flock lock;
+    lock.l_type = F_RDLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = sizeof(struct Course);
+    lock.l_pid = getpid();
+
+    if (fcntl(fd_course, F_SETLKW, &lock) == -1) {
+        perror("Error acquiring file lock");
+        close(fd_course);
+        return 0;
+    }
+    struct Course course;
 
 
-int student_manage(int client_socket){
-    char menu[] = "\nStudent logged in\n\nEnter the Option:\n1. Enroll Student\n9. Logout\n";
+    while (read(fd_course, &course, sizeof(struct Course)) > 0) {
+        // Process the course record
+        printf("Course id: %s\n", course.course_id);
+        printf("Username: %s\n", course.course_name);
+        printf("Name: %s\n", course.dept);
+        printf("Active: %s\n", course.active);
+
+        printf("\n");
+        
+        sprintf(course_entries, "Course id: %s\nCourse name: %s\nOffered by department: %s\nTotal seats: %s\n\n", course.course_id, course.course_name, course.dept, course.total_seats );
+        strcat(send_response, course_entries);   
+    }
+    strcat(send_response, menu); 
+
+    send(client_socket, send_response, strlen(send_response), 0);   
+
+
+    lock.l_type=F_UNLCK;
+	fcntl(fd_course,F_SETLKW,&lock);
+    return 0;
+}
+
+
+int enroll_course(struct Student loggedin_student, int client_socket){
+
+    return 0;
+}
+
+
+
+int student_manage(struct Student loggedin_student, int client_socket){
+    
     send(client_socket, menu, sizeof(menu), 0);
 
     char buffer[BUFFER_SIZE];
@@ -61,23 +113,19 @@ int student_manage(int client_socket){
         switch (choice) {
             case 1: {
 
-                add_student(client_socket);
-                char response[] = "\nAdded Student.\n\nEnter the Option:\n1. Add Student\n2. Add Faculty\n3. Activate Student\n4. Decativate Student\n5. Update Student Details\n6. Update Faculty Details\n7. View Student\n8. View Faculty\n9. Logout\n";
-                send(client_socket, response, sizeof(response), 0);
+                view_all_courses(loggedin_student, client_socket);
                 
                 break;
             }
             case 2: {
-                // Add Faculty functionality
-                // Implement this functionality here, including data storage
-                add_faculty(client_socket);
-                char response[] = "Added Faculty.\n\nEnter the Option:\n1. Add Student\n2. Add Faculty\n3. Activate Student\n4. Decativate Student\n5. Update Student Details\n6. Update Faculty Details\n7. View Student\n8. View Faculty\n9. Logout\n";
+
+                enroll_course(loggedin_student, client_socket);
+                char response[] = "Course Enrolled \n\n1. View all courses\n2. Enroll new course\n3. Drop course\n4. View Enrolled details\n5. Chnage password\n6. Logout\n";
                 send(client_socket, response, sizeof(response), 0);
                 break;
             }
             case 3: {
-                // Activate Student functionality
-                // Implement this functionality here, including data storage
+
                 char response[] = "Activated Student.\n";
                 send(client_socket, response, sizeof(response), 0);
                 break;
@@ -122,7 +170,7 @@ int student_manage(int client_socket){
                 // Logout functionality
                 char response[] = "Logged out.\n";
                 send(client_socket, response, sizeof(response), 0);
-                return 0;
+                break;
             }
             default: {
                 char response[] = "Invalid choice. Please select a valid option.\n";
