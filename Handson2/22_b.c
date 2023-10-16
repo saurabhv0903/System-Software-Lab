@@ -24,11 +24,9 @@ int main(){
 
 	//initializing buffers
         char buff[max_buffsize];
-        char buff1[max_buffsize];
 
 	//initializing fifo
         int fd1 = open("myfifo_mknod", O_RDONLY);
-        int fd2 = open("myfifo_mkfifo", O_WRONLY);
 
         //writing select
         fd_set rfds;
@@ -46,12 +44,7 @@ int main(){
         	read(fd1, buff, sizeof(buff));
         	printf("Message from FIFO file is\n %s\n", buff);
 	}
-
-	//writing into fifo
-        printf("Enter the message:\n");
-        scanf(" %[^\n]", buff1);
-        write(fd2, buff1, sizeof(buff1));
-
+	
         return 0;
 }
 

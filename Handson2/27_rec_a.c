@@ -1,6 +1,6 @@
 /*
 ============================================================================
-Name : 26_recieve.c
+Name : 27_rec_a.c
 Author : Saurabh Varade
 Description : Write a program to print a message queue's (use msqid_ds and ipc_perm structures)
 
