@@ -95,6 +95,7 @@ int student_login(int client_socket){
                 
                 wrong_credentials = 0;
                 student_manage(loggedin_student, client_socket);
+                return 0;
                 break;
             }
             else{

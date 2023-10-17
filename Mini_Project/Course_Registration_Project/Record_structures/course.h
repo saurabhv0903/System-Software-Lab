@@ -1,3 +1,7 @@
+#ifndef YOUR_HEADER_FILE_H
+#define YOUR_HEADER_FILE_H
+
+
 struct Course
 {
     char course_id[10];
@@ -14,6 +18,10 @@ struct Course
 struct Enroll
 {
     char roll[10];
-    char course_id[2][10]; 
+    char course_id[10];
+    // char course_name[50]; 
 
 };
+
+
+#endif

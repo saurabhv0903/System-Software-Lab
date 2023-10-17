@@ -241,7 +241,7 @@ int view_offering_course(char id[], int client_socket){
 
 
     while (read(fd_course, &course, sizeof(struct Course)) > 0 ) {
-        if( strcpy(course.id, string_response) ){
+        if( strcmp(course.id, string_response) == 0){
 
         // Process the course record
         printf("Course id: %s\n", course.course_id);
@@ -258,6 +258,8 @@ int view_offering_course(char id[], int client_socket){
     strcat(send_response, "\nEnter the Option:\n1. View Offering courses\n2. Add New Course\n3. Remove course from catalog\n4. Update Course Details\n5. Change password\n9. Logout\n"); 
 
     send(client_socket, send_response, strlen(send_response), 0);   
+    bzero(send_response, sizeof(send_response));
+
 
 
     lock.l_type=F_UNLCK;
@@ -269,7 +271,7 @@ int view_offering_course(char id[], int client_socket){
 
 
 int faculty_manage(char id[], int client_socket){
-    char menu[] = "\nFaculty logged in\n\nEnter the Option:\n1. View Offering courses\n2. Add New Course\n3. Remove course from catalog\n4. Update Course Details\n5. Change password\n9. Logout\n";
+    char menu[] = "\nFaculty logged in\n\nEnter the Option:\n1. View Offering courses\n2. Add New Course\n3. Remove course from catalog\n4. Update Course Details\n5. Change password\n6. Logout\n";
     send(client_socket, menu, sizeof(menu), 0);
 
     char buffer[BUFFER_SIZE];
@@ -325,31 +327,11 @@ int faculty_manage(char id[], int client_socket){
                 send(client_socket, response, sizeof(response), 0);
                 break;
             }
+            
             case 6: {
-                // Update Details functionality
-                // Implement this functionality here, including data storage
-                char response[] = "Updated Course Details.\n";
-                send(client_socket, response, sizeof(response), 0);
-                break;
-            }
-            case 7: {
                 // Logout functionality
-                char response[] = "View Course Details.\n";
-                view_faculty(client_socket);
+                // char response[] = "Logged out.\n";
                 // send(client_socket, response, sizeof(response), 0);
-                break;
-            }
-            case 8: {
-                // Logout functionality
-                char response[] = "View Course Details.\n";
-                view_faculty(client_socket);
-                send(client_socket, response, sizeof(response), 0);
-                break;
-            }
-            case 9: {
-                // Logout functionality
-                char response[] = "Logged out.\n";
-                send(client_socket, response, sizeof(response), 0);
                 return 0;
             }
             default: {

@@ -101,6 +101,9 @@ int faculty_login(int client_socket){
 
         lock.l_type=F_UNLCK;
         fcntl(fd_faculty,F_SETLKW,&lock);
+        if(wrong_credentials == 0){
+            break;
+        }
     }
 
 
