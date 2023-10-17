@@ -13,6 +13,7 @@
 
 char send_response[BUFFER_SIZE];
 char read_response[BUFFER_SIZE];
+char menu1[] = "\nEnter the Option:\n1. Add Student\n2. Add Faculty\n3. Activate Student\n4. Decativate Student\n5. Update Student Details\n6. Update Faculty Details\n7. View Student\n8. View Faculty\n9. Logout\n";
 
 /*
 struct Student{
@@ -146,6 +147,7 @@ int add_student(int client_socket){
     }
 
     new_student.status = atoi(string_response);
+    new_student.enrolled = 0;
      
     write(fd_student, &new_student, sizeof(new_student));    
     
@@ -157,11 +159,11 @@ int add_student(int client_socket){
     return 0;
 }
 
-
 int view_students(int client_socket){
 
     int fd_student = create_student();
     char string_response[BUFFER_SIZE];
+    int check = 0; 
     
     struct flock lock;
     lock.l_type = F_RDLCK;
@@ -207,20 +209,190 @@ int view_students(int client_socket){
         printf("\n");
         
         if(client_input == student.roll){
-            sprintf(send_response, "Roll: %d\nUsername: %s\nName: %s\nActivation Status: %d\n\nEnter the Option:\n1. Add Student\n2. Add Faculty\n3. View Students\n4. Activate Student\n5. Decativate Student\n6. Update Student Details\n7. View Faculty\n8. Update Faculty\n9. Logout\n", student.roll, student.username, student.name, student.status );
-
+            sprintf(send_response, "Roll: %d\nUsername: %s\nName: %s\nPassword: %s\nActivation Status: %d\n", student.roll, student.username, student.name, student.password, student.status );
+            strcat(send_response, menu1);
             send(client_socket, send_response, strlen(send_response), 0);
+            check = 1;
             break;
         }
 
     }
+
+    if(check == 0){
+        bzero(send_response, sizeof(send_response));
+        strcpy(send_response, "Student not found\n\n");
+
+        strcat(send_response, menu1);
+        
+        send(client_socket, send_response, strlen(send_response), 0);
+    }
+
     lock.l_type=F_UNLCK;
 	fcntl(fd_student,F_SETLKW,&lock);
     return 0;
 }
 
+int deactivate_student(int client_socket){
+
+    int fd_student = create_student();
+    char string_response[BUFFER_SIZE];
+    int check = 0; 
+    
+    struct flock lock;
+    lock.l_type = F_RDLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = sizeof(struct Student);
+    lock.l_pid = getpid();
+
+    if (fcntl(fd_student, F_SETLKW, &lock) == -1) {
+        perror("Error acquiring file lock");
+        close(fd_student);
+        return 0;
+    }
+    struct Student student;
 
 
+    strcpy(send_response, "Enter the roll of Student: ");
+    send(client_socket, send_response, strlen(send_response), 0);
+
+    bzero(read_response, sizeof(read_response));
+    recv(client_socket, read_response, sizeof(read_response), 0);
+
+    strcpy(string_response,read_response);
+    printf("%s\n", string_response);
+
+    int client_input = atoi(string_response);
+
+
+    if (strchr(read_response, '\n') != NULL) {
+        read_response[strlen(read_response) - 1] = '\0';
+    }
+
+
+    while (read(fd_student, &student, sizeof(struct Student)) > 0) {
+
+        printf("\n");
+
+        if(client_input == student.roll){
+            
+            printf("Before deactivate\n\nRoll: %d\n", student.roll);
+            printf("Username: %s\n", student.username);
+            printf("Name: %s\n", student.name);
+            printf("Status: %d\n", student.status);
+            
+
+            printf("\nEntered the main logic for deactivate\n\n");    
+            student.status = 0;
+            
+            lseek(fd_student, -sizeof(struct Student), SEEK_CUR);
+            write(fd_student, &student, sizeof(student)); 
+
+            strcpy(send_response, "Student Deactivated\n\n");
+            strcat(send_response, menu1);
+
+            send(client_socket, send_response, strlen(send_response), 0);
+            
+            printf("After Deactivation\n\nRoll: %d\n", student.roll);
+            printf("Status: %d\n", student.status);
+            
+            check = 1;
+            break;
+        }
+
+    }
+
+    if(check == 0){
+        bzero(send_response, sizeof(send_response));
+        strcat(send_response, menu1);
+        send(client_socket, "Student not found\n\n", strlen("Student not found\n\n"), 0);
+    }
+
+    lock.l_type=F_UNLCK;
+	fcntl(fd_student,F_SETLKW,&lock);
+    return 0;
+}
+
+int activate_student(int client_socket){
+
+    int fd_student = create_student();
+    char string_response[BUFFER_SIZE];
+    int check = 0; 
+    
+    struct flock lock;
+    lock.l_type = F_RDLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = sizeof(struct Student);
+    lock.l_pid = getpid();
+
+    if (fcntl(fd_student, F_SETLKW, &lock) == -1) {
+        perror("Error acquiring file lock");
+        close(fd_student);
+        return 0;
+    }
+    struct Student student;
+
+
+    strcpy(send_response, "Enter the roll of Student: ");
+    send(client_socket, send_response, strlen(send_response), 0);
+
+    bzero(read_response, sizeof(read_response));
+    recv(client_socket, read_response, sizeof(read_response), 0);
+
+    strcpy(string_response,read_response);
+    printf("%s\n", string_response);
+
+    int client_input = atoi(string_response);
+
+
+    if (strchr(read_response, '\n') != NULL) {
+        read_response[strlen(read_response) - 1] = '\0';
+    }
+
+
+    while (read(fd_student, &student, sizeof(struct Student)) > 0) {
+
+        printf("\n");
+
+        if(client_input == student.roll){
+            
+            printf("Before activate\n\nRoll: %d\n", student.roll);
+            printf("Username: %s\n", student.username);
+            printf("Name: %s\n", student.name);
+            printf("Status: %d\n", student.status);
+            
+
+            printf("\nEntered the main logic for activate\n\n");    
+            student.status = 1;
+            
+            lseek(fd_student, -sizeof(struct Student), SEEK_CUR);
+            write(fd_student, &student, sizeof(student)); 
+
+            strcpy(send_response, "Student activated\n\n");
+            strcat(send_response, menu1);
+
+            send(client_socket, send_response, strlen(send_response), 0);
+            
+            printf("After activation\n\nRoll: %d\n", student.roll);
+            printf("Status: %d\n", student.status);
+            
+            check = 1;
+            break;
+        }
+
+    }
+
+    if(check == 0){
+        bzero(send_response, sizeof(send_response));
+        strcat(send_response, menu1);
+        send(client_socket, "Student not found\n\n", strlen("Student not found\n\n"), 0);
+    }
+
+    lock.l_type=F_UNLCK;
+	fcntl(fd_student,F_SETLKW,&lock);
+    return 0;
+}
 
 int add_faculty(int client_socket){
 
@@ -363,6 +535,7 @@ int view_faculty(int client_socket){
 
     int fd_faculty = create_faculty();
     char string_response[BUFFER_SIZE];
+    int check;
     
     struct flock lock;
     lock.l_type = F_RDLCK;
@@ -407,15 +580,287 @@ int view_faculty(int client_socket){
 
         if( strcmp(client_input, faculty.id) == 0){
             printf("faculty found\n");
-            sprintf(send_response, "ID: %s\nUsername: %s\nName: %s\n\nEnter the Option:\n1. Add Student\n2. Add Faculty\n3. View Students\n4. Activate Student\n5. Decativate Student\n6. Update Student Details\n7. View Faculty\n8. Update Faculty\n9. Logout\n", faculty.id, faculty.username, faculty.name );
+            sprintf(send_response, "ID: %s\nUsername: %s\nName: %s\nDepartment: %s\n", faculty.id, faculty.username, faculty.name, faculty.dept );
+            strcat(send_response, menu1);
+            send(client_socket, send_response, strlen(send_response), 0);
+            check = 1;
+            break;
+        }
+
+
+    }
+
+    lock.l_type=F_UNLCK;
+	fcntl(fd_faculty,F_SETLKW,&lock);
+
+    if(check == 0){
+        bzero(send_response, sizeof(send_response));
+        strcpy(send_response, "Faculty not found\n\n");
+
+        strcat(send_response, menu1);
+        
+        send(client_socket, send_response, strlen(send_response), 0);
+    }
+
+    return 0;
+}
+
+int update_student(int client_socket){
+
+
+    int fd_student = create_student();
+    char string_response[BUFFER_SIZE];
+    int check = 0; 
+    
+    struct flock lock;
+    lock.l_type = F_RDLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = sizeof(struct Student);
+    lock.l_pid = getpid();
+
+    if (fcntl(fd_student, F_SETLKW, &lock) == -1) {
+        perror("Error acquiring file lock");
+        close(fd_student);
+        return 0;
+    }
+    struct Student student;
+
+
+
+    if (strchr(read_response, '\n') != NULL) {
+        read_response[strlen(read_response) - 1] = '\0';
+    }
+
+
+    strcpy(send_response, "Enter the student roll: ");
+    send(client_socket, send_response, strlen(send_response), 0);
+
+    bzero(read_response, sizeof(read_response));
+    recv(client_socket, read_response, sizeof(read_response), 0);
+
+    strcpy(string_response,read_response);
+    printf("%s\n", string_response);
+
+    while (read(fd_student, &student, sizeof(struct Student)) > 0) {
+
+        printf("\n");
+        int client_input = atoi(string_response);
+        if(client_input == student.roll){
+            
+            printf("Before updating\n\nRoll: %d\n", student.roll);
+            printf("Username: %s\n", student.username);
+            printf("Name: %s\n", student.name);
+            printf("Status: %d\n", student.status);
+            
+
+            printf("\nEntered the main logic for update\n\n");    
+            
+    
+    
+            strcpy(send_response, "Enter what you want to update of Student: \n\n1. Update Name\n2. Update username\n");
+            send(client_socket, send_response, strlen(send_response), 0);
+
+            bzero(read_response, sizeof(read_response));
+            recv(client_socket, read_response, sizeof(read_response), 0);
+
+            strcpy(string_response,read_response);
+            printf("%s\n", string_response);
+
+            int client_input = atoi(string_response);
+            
+
+            switch (client_input) {
+                case 1: {
+                    //update name
+                    strcpy(send_response, "Enter new name\n");
+                    send(client_socket, send_response, strlen(send_response), 0);
+
+                    bzero(read_response, sizeof(read_response));
+                    recv(client_socket, read_response, sizeof(read_response), 0);
+
+                    strcpy(string_response,read_response);
+                    printf("%s\n", string_response);
+                    
+                    strcpy(student.name, string_response);
+                    
+                    break;
+                }
+
+                case 2: {
+                    //update department
+
+                    strcpy(send_response, "Enter new username\n");
+                    send(client_socket, send_response, strlen(send_response), 0);
+
+                    bzero(read_response, sizeof(read_response));
+                    recv(client_socket, read_response, sizeof(read_response), 0);
+
+                    strcpy(string_response,read_response);
+                    printf("%s\n", string_response);
+                    
+                    strcpy(student.username, string_response);
+                    break;
+                }
+            }
+
+            
+            lseek(fd_student, -sizeof(struct Student), SEEK_CUR);
+            write(fd_student, &student, sizeof(student)); 
+
+            strcpy(send_response, "Student updated\n\n");
+            strcat(send_response, menu1);
 
             send(client_socket, send_response, strlen(send_response), 0);
+            
+            printf("After updating\n\nRoll: %d\n", student.roll);
+            printf("Status: %d\n", student.status);
+            
+            check = 1;
             break;
         }
 
     }
+
+    if(check == 0){
+        bzero(send_response, sizeof(send_response));
+        strcat(send_response, menu1);
+        send(client_socket, "Student not found\n\n", strlen("Student not found\n\n"), 0);
+    }
+
+    lock.l_type=F_UNLCK;
+	fcntl(fd_student,F_SETLKW,&lock);
+
+    return 0;
+}
+
+int update_faculty(int client_socket){
+
+
+    int fd_faculty = create_faculty();
+    char string_response[BUFFER_SIZE];
+    int check = 0; 
+    
+    struct flock lock;
+    lock.l_type = F_RDLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = sizeof(struct Faculty);
+    lock.l_pid = getpid();
+
+    if (fcntl(fd_faculty, F_SETLKW, &lock) == -1) {
+        perror("Error acquiring file lock");
+        close(fd_faculty);
+        return 0;
+    }
+    struct Faculty faculty;
+
+
+
+    if (strchr(read_response, '\n') != NULL) {
+        read_response[strlen(read_response) - 1] = '\0';
+    }
+
+
+    strcpy(send_response, "Enter the faculty id: ");
+    send(client_socket, send_response, strlen(send_response), 0);
+
+    bzero(read_response, sizeof(read_response));
+    recv(client_socket, read_response, sizeof(read_response), 0);
+
+    strcpy(string_response,read_response);
+    printf("%s\n", string_response);
+
+    while (read(fd_faculty, &faculty, sizeof(struct Faculty)) > 0) {
+
+        printf("\n");
+        if( strcmp(string_response, faculty.id) == 0 ){
+            
+            printf("Before updating\n\nID: %s\n", faculty.id);
+            printf("Department: %s\n", faculty.dept);
+            printf("Name: %s\n", faculty.name);
+            printf("Password: %s\n", faculty.password);
+            
+
+            printf("\nEntered the main logic for update\n\n");    
+            
+    
+    
+            strcpy(send_response, "Enter what you want to update of Faculty: \n\n1. Update Name\n2. Update deaprtment\n");
+            send(client_socket, send_response, strlen(send_response), 0);
+
+            bzero(read_response, sizeof(read_response));
+            recv(client_socket, read_response, sizeof(read_response), 0);
+
+            strcpy(string_response,read_response);
+            printf("%s\n", string_response);
+
+            int client_input = atoi(string_response);
+            
+
+            switch (client_input) {
+                case 1: {
+                    //update name
+                    strcpy(send_response, "Enter new name\n");
+                    send(client_socket, send_response, strlen(send_response), 0);
+
+                    bzero(read_response, sizeof(read_response));
+                    recv(client_socket, read_response, sizeof(read_response), 0);
+
+                    strcpy(string_response,read_response);
+                    printf("%s\n", string_response);
+                    
+                    strcpy(faculty.name, string_response);
+                    
+                    break;
+                }
+
+                case 2: {
+                    //update department
+
+                    strcpy(send_response, "Enter new department\n");
+                    send(client_socket, send_response, strlen(send_response), 0);
+
+                    bzero(read_response, sizeof(read_response));
+                    recv(client_socket, read_response, sizeof(read_response), 0);
+
+                    strcpy(string_response,read_response);
+                    printf("%s\n", string_response);
+                    
+                    strcpy(faculty.dept, string_response);
+                    break;
+                }
+            }
+
+            
+            lseek(fd_faculty, -sizeof(struct Faculty), SEEK_CUR);
+            write(fd_faculty, &faculty, sizeof(faculty)); 
+
+            strcpy(send_response, "Faculty updated\n\n");
+            strcat(send_response, menu1);
+
+            send(client_socket, send_response, strlen(send_response), 0);
+            
+            printf("After updating\n\nID: %s\n", faculty.id);
+            printf("Department: %s\n", faculty.dept);
+            printf("Name: %s\n", faculty.name);
+            printf("Password: %s\n", faculty.password);
+            
+            check = 1;
+            break;
+        }
+
+    }
+
+    if(check == 0){
+        bzero(send_response, sizeof(send_response));
+        strcat(send_response, menu1);
+        send(client_socket, "Faculty not found\n\n", strlen("Faculty not found\n\n"), 0);
+    }
+
     lock.l_type=F_UNLCK;
 	fcntl(fd_faculty,F_SETLKW,&lock);
+
     return 0;
 }
 
@@ -424,7 +869,7 @@ int view_faculty(int client_socket){
 
 
 int admin(int client_socket){
-    char menu[] = "\nAdmin logged in\n\nEnter the Option:\n1. Add Student\n2. Add Faculty\n3. Activate Student\n4. Decativate Student\n5. Update Student Details\n6. Update Faculty Details\n7. View Student\n8. View Faculty\n9. Logout\n";
+    char menu[] = "\nAdmin logged in\n\nEnter the Option:\n1. Add Student\n2. Add Faculty\n3. Activate Student\n4. Deactivate Student\n5. Update Student Details\n6. Update Faculty Details\n7. View Student\n8. View Faculty\n9. Logout\n";
     send(client_socket, menu, sizeof(menu), 0);
 
     char buffer[BUFFER_SIZE];
@@ -446,6 +891,7 @@ int admin(int client_socket){
 
         switch (choice) {
             case 1: {
+                //add student
 
                 add_student(client_socket);
                 char response[] = "\nAdded Student.\n\nEnter the Option:\n1. Add Student\n2. Add Faculty\n3. Activate Student\n4. Decativate Student\n5. Update Student Details\n6. Update Faculty Details\n7. View Student\n8. View Faculty\n9. Logout\n";
@@ -455,57 +901,48 @@ int admin(int client_socket){
             }
             case 2: {
                 // Add Faculty functionality
-                // Implement this functionality here, including data storage
+
                 add_faculty(client_socket);
                 char response[] = "Added Faculty.\n\nEnter the Option:\n1. Add Student\n2. Add Faculty\n3. Activate Student\n4. Decativate Student\n5. Update Student Details\n6. Update Faculty Details\n7. View Student\n8. View Faculty\n9. Logout\n";
                 send(client_socket, response, sizeof(response), 0);
                 break;
             }
             case 3: {
-                
-                char response[] = "Activated Student.\n";
-                send(client_socket, response, sizeof(response), 0);
+                //activate student
+
+                activate_student(client_socket);
                 break;
             }
             case 4: {
                 // Deactivate Student functionality
                 // Implement this functionality here, including data storage
-                char response[] = "Deactivated Student.\n";
-                send(client_socket, response, sizeof(response), 0);
+                deactivate_student(client_socket);
                 break;
             }
             case 5: {
-                // Update Details functionality
-                // Implement this functionality here, including data storage
-                char response[] = "Updated Student Details.\n";
-                
-                send(client_socket, response, sizeof(response), 0);
+                // Update Student Details functionality
+                update_student(client_socket);
+
                 break;
             }
             case 6: {
-                // Update Details functionality
-                // Implement this functionality here, including data storage
-                char response[] = "Updated Faculty Details.\n";
-                send(client_socket, response, sizeof(response), 0);
+                // Update Faculty Details functionality
+                update_faculty(client_socket);
                 break;
             }
             case 7: {
-                char response[] = "View Student Details.\n";
                 view_students(client_socket);
                 // send(client_socket, response, sizeof(response), 0);
                 break;
             }
             case 8: {
-                char response[] = "View Faculty Details.\n";
                 view_faculty(client_socket);
-                send(client_socket, response, sizeof(response), 0);
                 break;
             }
             case 9: {
                 // Logout functionality
-                char response[] = "Logged out.\n";
-                send(client_socket, response, sizeof(response), 0);
                 return 0;
+                break;
             }
             default: {
                 char response[] = "Invalid choice. Please select a valid option.\n";

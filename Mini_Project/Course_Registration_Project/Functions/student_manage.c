@@ -84,7 +84,6 @@ int view_all_courses(struct Student loggedin_student, int client_socket){
     return 0;
 }
 
-
 int enroll_course(struct Student loggedin_student, int client_socket){
     
     
@@ -234,7 +233,7 @@ int enroll_course(struct Student loggedin_student, int client_socket){
 
         printf("\n");
 
-        if( strcmp(new_enroll.course_id, course.course_id) == 0 ){
+        if( strcmp( new_enroll.course_id, course.course_id ) == 0 ){
             int temp = atoi(course.avail_seats) - 1;
             sprintf(course.avail_seats, "%d", temp);
             
@@ -259,7 +258,6 @@ int enroll_course(struct Student loggedin_student, int client_socket){
 
     return 0;
 }
-
 
 int enrolled_course(struct Student loggedin_student, int client_socket){
 
@@ -484,7 +482,6 @@ int drop_course(struct Student loggedin_student, int client_socket){
 
     return 0;
 }
-
 
 int change_password(struct Student loggedin_student, int client_socket){
 

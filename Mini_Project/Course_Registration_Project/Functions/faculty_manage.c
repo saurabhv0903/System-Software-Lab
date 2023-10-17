@@ -4,15 +4,16 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-// #include "/home/saurabh/MTech/SS/Handson/Project/Course_Registration_Project/Record_structures/create_faculty.c"
-// #include "/home/saurabh/MTech/SS/Handson/Project/Course_Registration_Project/Record_structures/create_faculty.c"
 #include "/home/saurabh/MTech/SS/Handson/Mini_Project/Course_Registration_Project/Record_structures/course.h"
 
+
+#define FACULTY_PATH "/home/saurabh/MTech/SS/Handson/Mini_Project/Course_Registration_Project/database/Faculty.txt"
 #define PORT 8085
 #define BUFFER_SIZE 4096
 
 char send_response[BUFFER_SIZE];
 char read_response[BUFFER_SIZE];
+char menu2[] = "\n\nEnter the Option:\n1. View Offering courses\n2. Add New Course\n3. Remove course from catalog\n4. Update Course Details\n5. Change password\n6. Logout\n";
 
 /*
 struct Course{
@@ -196,7 +197,6 @@ int add_course(char id[], int client_socket){
     return 0;
 }
 
-
 int view_offering_course(char id[], int client_socket){
 
     int fd_course = open("course.txt",O_RDWR);
@@ -267,8 +267,215 @@ int view_offering_course(char id[], int client_socket){
     return 0;
 }
 
+int change_password1(char id[], int client_socket){
+
+    char string_response[BUFFER_SIZE];
+    int fd_faculty = open(FACULTY_PATH,O_RDWR);
+	if(fd_faculty == -1){
+		perror("File error");
+	}
+    else{
+        printf("Faculty file opened successfully");
+    }
+    
 
 
+    //adding course
+
+    struct Faculty faculty;
+    
+    //- sizeof(struct), seek cur
+    printf("Acquiring record lock on Faculty.txt\n");
+    struct flock lock;
+    lock.l_type = F_WRLCK;
+    lock.l_whence = SEEK_END;
+    lock.l_start = 0;
+    lock.l_len = sizeof(struct Faculty);
+    lock.l_pid = getpid();
+    
+    fcntl(fd_faculty, F_SETLKW, &lock);
+    printf("Lock acquired on Faculty.txt\n");
+
+
+    while (read(fd_faculty, &faculty, sizeof(struct Faculty)) > 0) {
+        // Process the course record
+        printf("ID: %s\n", faculty.id);
+        printf("Username: %s\n", faculty.username);
+        printf("Name: %s\n", faculty.name);
+        printf("input ID: %s\n", id);
+
+        printf("\n");
+
+        if( strcmp(id, faculty.id) == 0 ){
+            
+
+            strcpy(send_response, "Enter new password: ");
+            send(client_socket, send_response, strlen(send_response), 0);
+
+            bzero(read_response, sizeof(read_response));
+            recv(client_socket, read_response, sizeof(read_response), 0);
+
+            strcpy(string_response,read_response);
+            printf("%s\n", string_response);
+            
+            if (strchr(read_response, '\n') != NULL) {
+                read_response[strlen(read_response) - 1] = '\0';
+            }
+
+
+            strcpy(faculty.password, string_response);
+            
+            lseek(fd_faculty, -sizeof(struct Faculty), SEEK_CUR);
+            write(fd_faculty, &faculty, sizeof(faculty)); 
+
+            printf("\n after change password\nPassowrd: %s\n", faculty.password);
+
+            printf("\n");
+            break;
+        }
+
+
+    }
+    
+   
+    
+    lock.l_type=F_UNLCK;
+	fcntl(fd_faculty,F_SETLKW,&lock);
+    
+    close(fd_faculty);
+
+    return 0;
+}
+
+int update_course(char id[], int client_socket){
+
+
+    int fd_student = open("course.txt",O_RDWR);
+    char string_response[BUFFER_SIZE];
+    int check = 0; 
+    
+    struct flock lock;
+    lock.l_type = F_RDLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = sizeof(struct Course);
+    lock.l_pid = getpid();
+
+    if (fcntl(fd_student, F_SETLKW, &lock) == -1) {
+        perror("Error acquiring file lock");
+        close(fd_student);
+        return 0;
+    }
+    struct Course course;
+
+
+
+    if (strchr(read_response, '\n') != NULL) {
+        read_response[strlen(read_response) - 1] = '\0';
+    }
+
+
+    strcpy(send_response, "Enter the course id: ");
+    send(client_socket, send_response, strlen(send_response), 0);
+
+    bzero(read_response, sizeof(read_response));
+    recv(client_socket, read_response, sizeof(read_response), 0);
+
+    strcpy(string_response,read_response);
+    printf("%s\n", string_response);
+
+    while (read(fd_student, &course, sizeof(struct Course)) > 0) {
+
+        printf("\n");
+        if( strcmp(string_response, course.course_id) == 0 ){
+            
+            printf("Before updating\n\nCourse ID: %s\n", course.course_id);
+            printf("Course name: %s\n", course.course_name);
+            printf("Course credits: %s\n", course.course_credit);
+            // printf("Total seats: %d\n", course.total_seats);
+            
+
+            printf("\nEntered the main logic for update\n\n");    
+            
+    
+    
+            strcpy(send_response, "Enter what you want to update of Course: \n\n1. Update Name\n2. Update Course credits\n");
+            send(client_socket, send_response, strlen(send_response), 0);
+
+            bzero(read_response, sizeof(read_response));
+            recv(client_socket, read_response, sizeof(read_response), 0);
+
+            strcpy(string_response,read_response);
+            printf("%s\n", string_response);
+
+            int client_input = atoi(string_response);
+            
+
+            switch (client_input) {
+                case 1: {
+                    //update name
+                    strcpy(send_response, "Enter new name\n");
+                    send(client_socket, send_response, strlen(send_response), 0);
+
+                    bzero(read_response, sizeof(read_response));
+                    recv(client_socket, read_response, sizeof(read_response), 0);
+
+                    strcpy(string_response,read_response);
+                    printf("%s\n", string_response);
+                    
+                    strcpy(course.course_name, string_response);
+                    
+                    break;
+                }
+
+                case 2: {
+                    //update department
+
+                    strcpy(send_response, "Enter new course credits\n");
+                    send(client_socket, send_response, strlen(send_response), 0);
+
+                    bzero(read_response, sizeof(read_response));
+                    recv(client_socket, read_response, sizeof(read_response), 0);
+
+                    strcpy(string_response,read_response);
+                    printf("%s\n", string_response);
+                    
+                    strcpy(course.course_credit, string_response);
+                    break;
+                }
+            }
+
+            
+            lseek(fd_student, -sizeof(struct Course), SEEK_CUR);
+            write(fd_student, &course, sizeof(course)); 
+
+            strcpy(send_response, "Course updated\n\n");
+            strcat(send_response, menu1);
+
+            send(client_socket, send_response, strlen(send_response), 0);
+            
+            printf("After updating\n\nCourse ID: %s\n", course.course_id);
+            printf("Course name: %s\n", course.course_name);
+            printf("Course credits: %s\n", course.course_credit);
+            // printf("Total seats: %d\n", course.total_seats);
+            
+            check = 1;
+            break;
+        }
+
+    }
+
+    if(check == 0){
+        bzero(send_response, sizeof(send_response));
+        strcat(send_response, menu1);
+        send(client_socket, "Course not found\n\n", strlen("Course not found\n\n"), 0);
+    }
+
+    lock.l_type=F_UNLCK;
+	fcntl(fd_student,F_SETLKW,&lock);
+
+    return 0;
+}
 
 int faculty_manage(char id[], int client_socket){
     char menu[] = "\nFaculty logged in\n\nEnter the Option:\n1. View Offering courses\n2. Add New Course\n3. Remove course from catalog\n4. Update Course Details\n5. Change password\n6. Logout\n";
@@ -313,18 +520,19 @@ int faculty_manage(char id[], int client_socket){
                 break;
             }
             case 4: {
-                // Deactivate Course functionality
-                // Implement this functionality here, including data storage
-                char response[] = "Deactivated Course.\n";
-                send(client_socket, response, sizeof(response), 0);
+                update_course(id, client_socket);
                 break;
             }
             case 5: {
                 // Update Details functionality
                 // Implement this functionality here, including data storage
-                char response[] = "Updated Course Details.\n";
+                change_password1(id, client_socket);
+                char response[] = "password changed.\n\n";
+                
+                strcat(response, menu2);
                 
                 send(client_socket, response, sizeof(response), 0);
+                
                 break;
             }
             

@@ -20,16 +20,23 @@ int student_login(int client_socket){
     char student_password1[20] ;
     char menu[300];
     int wrong_credentials = 0;
+    int deactivate = 0;
 
     while(1){
         //student sign in for username
-        if(wrong_credentials == 0){
+        if(wrong_credentials == 0 && deactivate == 0){
             strcpy(menu, "\nYou selected student\nSign in for student: Enter Username: ");
             send(client_socket, menu, strlen(menu), 0);
         }
         else{
-            strcpy(menu, "\n\nYour have entered wrong credentials\n\nSign in for student: Enter Username: ");
-            send(client_socket, menu, strlen(menu), 0);
+            if(deactivate == 1){
+                strcpy(menu, "\n\nYou are deactivated\n\nSign in for student: Enter Username: ");
+                send(client_socket, menu, strlen(menu), 0);
+            }
+            else{
+                strcpy(menu, "\n\nYour have entered wrong credentials\n\nSign in for student: Enter Username: ");
+                send(client_socket, menu, strlen(menu), 0);
+            }
         }
 
         bzero(buffer, sizeof(buffer));
@@ -80,7 +87,11 @@ int student_login(int client_socket){
 
         while (read(fd_student, &student, sizeof(struct Student)) > 0) {
 
-            if (strcmp(student_username1, student.username) == 0 && strcmp(student_password1, student.password) == 0) {
+            if(student.status == 0){
+                printf("checking status\n\n");
+                deactivate = 1;
+            }
+            if (strcmp(student_username1, student.username) == 0 && strcmp(student_password1, student.password) == 0 && student.status == 1) {
                 
                 // Process the student record
                 printf("Roll: %d\n", student.roll);

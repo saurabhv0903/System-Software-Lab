@@ -12,6 +12,7 @@ struct Student{
     char name[50];
     int status;
     char email[50];
+    int enrolled;
     // char course_enrolled[4][30];
 };
 

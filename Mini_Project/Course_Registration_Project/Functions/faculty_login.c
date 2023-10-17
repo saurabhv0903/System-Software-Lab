@@ -87,9 +87,12 @@ int faculty_login(int client_socket){
 
                 printf("\n");
                 char faculty_id[10];
+                
                 strcmp(faculty_id, faculty.id);
                 wrong_credentials = 0;
-                faculty_manage(faculty_id, client_socket);
+                
+                faculty_manage(faculty.id, client_socket);
+                
                 break;
             }
             else{
