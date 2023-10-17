@@ -462,8 +462,7 @@ int admin(int client_socket){
                 break;
             }
             case 3: {
-                // Activate Student functionality
-                // Implement this functionality here, including data storage
+                
                 char response[] = "Activated Student.\n";
                 send(client_socket, response, sizeof(response), 0);
                 break;

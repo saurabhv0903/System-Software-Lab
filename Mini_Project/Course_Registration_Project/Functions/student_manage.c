@@ -13,7 +13,7 @@
 
 char send_response[BUFFER_SIZE];
 char read_response[BUFFER_SIZE];
-char menu[] = "\nStudent logged in\n\nEnter the Option:\n1. View all courses\n2. Enroll new course\n3. Drop course\n4. View Enrolled details\n5. Chnage password\n6. Logout\n";
+char menu[] = "\nStudent logged in\n\nEnter the Option:\n1. View all courses\n2. Enroll new course\n3. Drop course\n4. View Enrolled details\n5. Change password\n6. Logout\n";
 /*
 struct Student{
     char username[50];
@@ -112,12 +112,63 @@ int enroll_course(struct Student loggedin_student, int client_socket){
     fcntl(fd_student, F_SETLKW, &lock);
     printf("Lock acquired on enrolled_course.txt\n");
 
+
+
     //displaying all the courses
-    view_all_courses(loggedin_student, client_socket);
+    int fd_course = open("course.txt",O_RDWR);
+	if(fd_course == -1){
+		perror("File error");
+	}
+    
+    char course_entries[BUFFER_SIZE];
+    
+    lock.l_type = F_RDLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = sizeof(struct Course);
+    lock.l_pid = getpid();
+
+    if (fcntl(fd_course, F_SETLKW, &lock) == -1) {
+        perror("Error acquiring file lock");
+        close(fd_course);
+        return 0;
+    }
+    struct Course course;
+
+    sprintf(course_entries, "Available courses:\n\n");
+
+    while (read(fd_course, &course, sizeof(struct Course)) > 0) {
+        // Process the course record
+        printf("Course id: %s\n", course.course_id);
+        printf("Username: %s\n", course.course_name);
+        printf("Name: %s\n", course.dept);
+        printf("Active: %s\n", course.active);
+
+        printf("\n");
+        
+        sprintf(course_entries, "Course id: %s\nCourse name: %s\nOffered by department: %s\nTotal seats: %s\nAvailable seats: %s\n\n", course.course_id, course.course_name, course.dept, course.total_seats, course.avail_seats );
+        strcat(send_response, course_entries);   
+    }
+    
+    strcat(send_response, "Enter course id to register: ");
+    send(client_socket, send_response, strlen(send_response), 0);   
+    bzero(send_response, sizeof(send_response));
 
 
-    strcpy(send_response, "Enter course id to register: ");
-    send(client_socket, send_response, strlen(send_response), 0);
+    lock.l_type=F_UNLCK;
+	fcntl(fd_course,F_SETLKW,&lock);
+
+
+    // view_all_courses(loggedin_student, client_socket);
+
+
+
+
+
+
+    //enroll course
+    // strcpy(send_response, "Enter course id to register: ");
+    // send(client_socket, send_response, strlen(send_response), 0);
 
     bzero(read_response, sizeof(read_response));
     recv(client_socket, read_response, sizeof(read_response), 0);
@@ -147,7 +198,7 @@ int enroll_course(struct Student loggedin_student, int client_socket){
 
 
     //decrease count of course 
-    int fd_course = open("course.txt",O_RDWR);
+    fd_course = open("course.txt",O_RDWR);
 	if(fd_course == -1){
 		perror("File error");
 	}
@@ -158,7 +209,7 @@ int enroll_course(struct Student loggedin_student, int client_socket){
 
     //adding course
 
-    struct Course course;
+    // struct Course course;
     
     //- sizeof(struct), seek cur
     printf("Acquiring record lock on Course.txt\n");
@@ -237,14 +288,16 @@ int enrolled_course(struct Student loggedin_student, int client_socket){
     sprintf(course_entries, "Enrolled courses:\n\n");
 
     while (read(fd_course, &enroll, sizeof(struct Enroll)) > 0) {
-        // Process the enroll record
-        printf("Student roll: %s\n", enroll.roll);
-        printf("Course id: %s\n", enroll.course_id);
+        if( strcmp(enroll.course_id, "0") !=0 ){
+            // Process the enroll record
+            printf("Student roll: %s\n", enroll.roll);
+            printf("Course id: %s\n", enroll.course_id);
 
-        printf("\n");
-        
-        sprintf(course_entries, "Student roll: %s\nCourse id: %s\n\n", enroll.roll, enroll.course_id);
-        strcat(send_response, course_entries);   
+            printf("\n");
+            
+            sprintf(course_entries, "Student roll: %s\nCourse id: %s\n\n", enroll.roll, enroll.course_id);
+            strcat(send_response, course_entries);   
+        }
     }
     strcat(send_response, menu); 
 
@@ -267,6 +320,7 @@ int drop_course(struct Student loggedin_student, int client_socket){
     struct Enroll new_enroll;
     struct Enroll enroll;
     char string_response[20];
+    char course_entries[BUFFER_SIZE];
     
     
     //set the offset to the record we want to change
@@ -285,10 +339,37 @@ int drop_course(struct Student loggedin_student, int client_socket){
     fcntl(fd_student, F_SETLKW, &lock);
     printf("Lock acquired on enrolled_course.txt\n");
 
-    enrolled_course(loggedin_student, client_socket);
 
-    strcpy(send_response, "Enter course id to drop: ");
-    send(client_socket, send_response, strlen(send_response), 0);
+    //view enrolled course
+    
+    sprintf(course_entries, "Enrolled courses:\n\n");
+
+    while (read(fd_student, &enroll, sizeof(struct Enroll)) > 0) {
+        if( strcmp(enroll.course_id, "0") !=0 ){
+            // Process the enroll record
+            printf("Student roll: %s\n", enroll.roll);
+            printf("Course id: %s\n", enroll.course_id);
+
+            printf("\n");
+            
+            sprintf(course_entries, "Student roll: %s\nCourse id: %s\n\n", enroll.roll, enroll.course_id);
+            strcat(send_response, course_entries);   
+        }
+    }
+    strcat(send_response, "Enter course id to drop: "); 
+    send(client_socket, send_response, strlen(send_response), 0);   
+    bzero(send_response, sizeof(send_response));
+
+
+    lock.l_type=F_UNLCK;
+	fcntl(fd_student,F_SETLKW,&lock);
+
+
+
+
+    //drop course
+    
+    // send(client_socket, send_response, strlen(send_response), 0);
 
     bzero(read_response, sizeof(read_response));
     recv(client_socket, read_response, sizeof(read_response), 0);
@@ -304,9 +385,11 @@ int drop_course(struct Student loggedin_student, int client_socket){
 
     sprintf(new_enroll.roll, "%d", loggedin_student.roll);
 
+    lseek(fd_student, 0, SEEK_SET);
 
     while (read(fd_student, &enroll, sizeof(struct Enroll)) > 0) {
         // Process the course record
+        
         printf("Student roll: %s\n", enroll.roll);
         printf("course id: %s\n", enroll.course_id);
 
@@ -314,11 +397,11 @@ int drop_course(struct Student loggedin_student, int client_socket){
 
         if( strcmp(new_enroll.course_id, enroll.course_id) == 0 ){
             
-            
-            memset(&new_enroll, 0, sizeof(struct Enroll));
+            printf("Entered the main logic for drop\n");    
+            strcpy(new_enroll.course_id, "0");
             
             lseek(fd_student, -sizeof(struct Enroll), SEEK_CUR);
-            write(fd_student, &enroll, sizeof(enroll)); 
+            write(fd_student, &new_enroll, sizeof(new_enroll)); 
 
 
             printf("course dropped\n");
@@ -377,13 +460,13 @@ int drop_course(struct Student loggedin_student, int client_socket){
         printf("\n");
 
         if( strcmp(new_enroll.course_id, course.course_id) == 0 ){
-            int temp = atoi(course.avail_seats) - 1;
+            int temp = atoi(course.avail_seats) + 1;
             sprintf(course.avail_seats, "%d", temp);
             
             lseek(fd_course, -sizeof(struct Course), SEEK_CUR);
             write(fd_course, &course, sizeof(course)); 
 
-            printf("\n after enrollment\ntotal available seats: %s\n", course.avail_seats);
+            printf("\n after drop\ntotal available seats: %s\n", course.avail_seats);
 
             printf("\n");
             break;
@@ -517,25 +600,28 @@ int student_manage(struct Student loggedin_student, int client_socket){
                 enroll_course(loggedin_student, client_socket);
                 char response[] = "Course Enrolled \n\n1. View all courses\n2. Enroll new course\n3. Drop course\n4. View Enrolled details\n5. Chnage password\n6. Logout\n";
                 send(client_socket, response, sizeof(response), 0);
+                //send handled
                 break;
             }
             case 3: {
 
-                char response[] = "Activated Student.\n";
-                send(client_socket, response, sizeof(response), 0);
+                drop_course(loggedin_student, client_socket);
+                send(client_socket, menu, sizeof(menu), 0);
+                //send handled
+
                 break;
             }
             case 4: {
                 enrolled_course(loggedin_student, client_socket);
-                char response[] = "Deactivated Student.\n";
-                send(client_socket, response, sizeof(response), 0);
+                //send handled
                 break;
             }
             case 5: {
                 change_password(loggedin_student, client_socket);
                 char response[] = "Updated Student Details.\n";
-                
+                strcat(response, menu);
                 send(client_socket, response, sizeof(response), 0);
+                //send handled
                 break;
             }
             
