@@ -73,7 +73,8 @@ int student_login(int client_socket){
         lock.l_type = F_RDLCK;
         lock.l_whence = SEEK_SET;
         lock.l_start = 0;
-        lock.l_len = sizeof(struct Student);
+        // lock.l_len = sizeof(struct Student);
+        lock.l_len = 0;
         lock.l_pid = getpid();
 
         if (fcntl(fd_student, F_SETLKW, &lock) == -1) {
@@ -91,6 +92,14 @@ int student_login(int client_socket){
                 printf("checking status\n\n");
                 deactivate = 1;
             }
+            
+            
+            printf("received username: %s\n", student_username1);
+            printf("file username: %s\n", student.username);
+            printf("\nreceived password: %s\n", student_password1);
+            printf("file password password: %s\n", student.password);
+            
+            
             if (strcmp(student_username1, student.username) == 0 && strcmp(student_password1, student.password) == 0 && student.status == 1) {
                 
                 // Process the student record
@@ -111,7 +120,6 @@ int student_login(int client_socket){
             }
             else{
                 wrong_credentials = 1;
-                break;
             }
 
         }

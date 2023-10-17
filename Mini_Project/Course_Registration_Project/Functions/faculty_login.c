@@ -97,7 +97,6 @@ int faculty_login(int client_socket){
             }
             else{
                 wrong_credentials = 1;
-                break;
             }
 
         }

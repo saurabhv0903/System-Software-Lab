@@ -203,13 +203,14 @@ int view_students(int client_socket){
         printf("Username: %s\n", student.username);
         printf("Name: %s\n", student.name);
         printf("Status: %d\n", student.status);
+        printf("Enrolled: %d\n", student.enrolled);
         // for (int i = 0; i < 4; i++) {
         //     printf("Course Enrolled %d: %s\n", i + 1, student.course_enrolled[i]);
         // }
         printf("\n");
         
         if(client_input == student.roll){
-            sprintf(send_response, "Roll: %d\nUsername: %s\nName: %s\nPassword: %s\nActivation Status: %d\n", student.roll, student.username, student.name, student.password, student.status );
+            sprintf(send_response, "Roll: %d\nUsername: %s\nName: %s\nPassword: %s\nActivation Status: %d\nEnrolled courses: %d\n", student.roll, student.username, student.name, student.password, student.status, student.enrolled );
             strcat(send_response, menu1);
             send(client_socket, send_response, strlen(send_response), 0);
             check = 1;
@@ -594,6 +595,7 @@ int view_faculty(int client_socket){
 	fcntl(fd_faculty,F_SETLKW,&lock);
 
     if(check == 0){
+        printf("Faculty not found\n\n");
         bzero(send_response, sizeof(send_response));
         strcpy(send_response, "Faculty not found\n\n");
 
