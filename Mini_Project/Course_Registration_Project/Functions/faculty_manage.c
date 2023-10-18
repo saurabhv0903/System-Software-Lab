@@ -250,12 +250,12 @@ int view_offering_course(char id[], int client_socket){
 
         printf("\n");
         
-        sprintf(course_entries, "Course id: %s\nCourse name: %s\nOffered by department: %s\nTotal seats: %s\nCourse Credits: %s\n\n", course.course_id, course.course_name, course.dept, course.total_seats, course.course_credit );
+        sprintf(course_entries, "Course id: %s\nCourse name: %s\nOffered by department: %s\nAvaialble seats: %s\nCourse Credits: %s\n\n", course.course_id, course.course_name, course.dept, course.avail_seats, course.course_credit );
         strcat(send_response, course_entries);
         }   
     }
 
-    strcat(send_response, "\nEnter the Option:\n1. View Offering courses\n2. Add New Course\n3. Remove course from catalog\n4. Update Course Details\n5. Change password\n9. Logout\n"); 
+    strcat(send_response, "\nEnter the Option:\n1. View Offering courses\n2. Add New Course\n3. Remove course from catalog\n4. Update Course Details\n5. Change password\n6. Logout\n"); 
 
     send(client_socket, send_response, strlen(send_response), 0);   
     bzero(send_response, sizeof(send_response));
@@ -387,7 +387,7 @@ int update_course(char id[], int client_socket){
     while (read(fd_student, &course, sizeof(struct Course)) > 0) {
 
         printf("\n");
-        if( strcmp(string_response, course.course_id) == 0 ){
+        if( strcmp(string_response, course.course_id) == 0 && strcmp(course.active, "0") !=0){
             
             printf("Before updating\n\nCourse ID: %s\n", course.course_id);
             printf("Course name: %s\n", course.course_name);
@@ -479,6 +479,7 @@ int update_course(char id[], int client_socket){
 }
 
 int remove_course(char id[], int client_socket){
+
 
 
     //setting course active to 0
@@ -596,7 +597,7 @@ int remove_course(char id[], int client_socket){
 
     //view enrolled course
     
-
+    int check1 = 0;
     while (read(fd_student, &enroll, sizeof(struct Enroll)) > 0) {
 
         printf("file course id: %s\n", enroll.course_id);
@@ -614,12 +615,13 @@ int remove_course(char id[], int client_socket){
             strcpy(enroll.course_id, "0");
 
             lseek(fd_student, -sizeof(struct Enroll), SEEK_CUR);
+            printf("enrollllllllllllll: %s\n", enroll.roll);
             write(fd_student, &enroll, sizeof(enroll)); 
 
             printf("\nafter\nStudent roll: %s\n", enroll.roll);
             printf("Course id: %s\n", enroll.course_id);
 
-
+            check1=1;
 
 
             //update student 
@@ -658,8 +660,8 @@ int remove_course(char id[], int client_socket){
             
                     
                     
-                    lseek(fd_student, -sizeof(struct Student), SEEK_CUR);
-                    write(fd_student, &student, sizeof(student)); 
+                    lseek(fd_student1, -sizeof(struct Student), SEEK_CUR);
+                    write(fd_student1, &student, sizeof(student)); 
 
                     strcpy(send_response, "Removed Course\n\n");
                     strcat(send_response, menu2);
@@ -679,7 +681,9 @@ int remove_course(char id[], int client_socket){
             lock.l_type=F_UNLCK;
             fcntl(fd_student1,F_SETLKW,&lock);
             close(fd_student1);
-            
+            if(check1 == 1){
+                break;
+            }
             //end
 
         }

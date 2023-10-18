@@ -69,9 +69,10 @@ int view_all_courses(struct Student loggedin_student, int client_socket){
         printf("Active: %s\n", course.active);
 
         printf("\n");
-        
-        sprintf(course_entries, "Course id: %s\nCourse name: %s\nOffered by department: %s\nTotal seats: %s\nAvailable seats: %s\n\n", course.course_id, course.course_name, course.dept, course.total_seats, course.avail_seats );
-        strcat(send_response, course_entries);   
+        if( strcmp(course.active, "0") !=0 ){
+            sprintf(course_entries, "Course id: %s\nCourse name: %s\nOffered by department: %s\nTotal seats: %s\nAvailable seats: %s\n\n", course.course_id, course.course_name, course.dept, course.total_seats, course.avail_seats );
+            strcat(send_response, course_entries);   
+        }
     }
     strcat(send_response, menu); 
 
@@ -87,27 +88,90 @@ int view_all_courses(struct Student loggedin_student, int client_socket){
 int enroll_course(struct Student loggedin_student, int client_socket){
     
     
-    int fd_student = open("enrolled_course.txt",O_RDWR);
 
     int option;
     struct Enroll new_enroll;
     char string_response[20];
+    int enrolled = 0;
     
-    
+    // printf("loggedin studentttttttttttt: %d\n", loggedin_student.enrolled);
+    // if(loggedin_student.enrolled < 6 ){
 
-    lseek(fd_student, 0, SEEK_END);
     
-    printf("Acquiring record lock on enrolled_course.txt\n");
+    
+    //update student 
+    int fd_student1 = create_student();
     
     struct flock lock;
-    lock.l_type = F_WRLCK;
-    lock.l_whence = SEEK_END;
+    lock.l_type = F_RDLCK;
+    lock.l_whence = SEEK_SET;
     lock.l_start = 0;
-    lock.l_len = sizeof(struct Enroll);
+    lock.l_len = sizeof(struct Student);
     lock.l_pid = getpid();
-    
-    fcntl(fd_student, F_SETLKW, &lock);
-    printf("Lock acquired on enrolled_course.txt\n");
+
+    if (fcntl(fd_student1, F_SETLKW, &lock) == -1) {
+        perror("Error acquiring file lock");
+        close(fd_student1);
+        return 0;
+    }
+    struct Student student;
+    lseek(fd_student1, 0, SEEK_SET);
+
+
+    while (read(fd_student1, &student, sizeof(struct Student)) > 0) {
+
+        printf("\n");
+        if(loggedin_student.roll == student.roll && student.enrolled < 6){
+            
+            printf("Before updating\n\nRoll: %d\n", student.roll);
+            printf("Username: %s\n", student.username);
+            printf("Enrolled course: %d\n", student.enrolled);
+            printf("Status: %d\n", student.status);
+            
+
+            printf("\nEntered the main logic for 3rd file\n\n");    
+            
+            student.enrolled = student.enrolled + 1;
+            enrolled = student.enrolled;
+
+
+            
+            
+            lseek(fd_student1, -sizeof(struct Student), SEEK_CUR);
+            write(fd_student1, &student, sizeof(student)); 
+
+            
+            printf("After updating\n\nRoll: %d\n", student.roll);
+            printf("Username: %s\n", student.username);
+            printf("Enrolled course: %d\n", student.enrolled);
+            printf("Status: %d\n", student.status);
+            
+            break;
+        }
+        if(loggedin_student.roll == student.roll && student.enrolled >= 6){
+            
+            bzero(send_response, sizeof(send_response));
+            strcpy(send_response, "Courses limit reached\n\n");
+            
+            strcat(send_response, menu);
+            
+            send(client_socket, send_response, strlen(send_response), 0);            
+            
+            lock.l_type=F_UNLCK;
+            fcntl(fd_student1,F_SETLKW,&lock);
+            close(fd_student1);
+
+            return 0;
+        }
+
+    }
+
+    lock.l_type=F_UNLCK;
+    fcntl(fd_student1,F_SETLKW,&lock);
+    close(fd_student1);
+
+
+
 
 
 
@@ -159,24 +223,49 @@ int enroll_course(struct Student loggedin_student, int client_socket){
 
 
 
-    //enroll course
+    //adding entry to enrolled course
     // strcpy(send_response, "Enter course id to register: ");
     // send(client_socket, send_response, strlen(send_response), 0);
 
+
+    int fd_student = open("enrolled_course.txt",O_RDWR);
+
+
+    lseek(fd_student, 0, SEEK_END);
+    
+    printf("Acquiring record lock on enrolled_course.txt\n");
+    
+    lock.l_type = F_WRLCK;
+    lock.l_whence = SEEK_END;
+    lock.l_start = 0;
+    lock.l_len = sizeof(struct Enroll);
+    lock.l_pid = getpid();
+    
+    fcntl(fd_student, F_SETLKW, &lock);
+    printf("Lock acquired on enrolled_course.txt\n");
+
+
     bzero(read_response, sizeof(read_response));
+    bzero(string_response, sizeof(string_response));
+
     recv(client_socket, read_response, sizeof(read_response), 0);
 
     strcpy(string_response,read_response);
+    
     printf("%s\n", string_response);
     
     if (strchr(read_response, '\n') != NULL) {
         read_response[strlen(read_response) - 1] = '\0';
     }
 
+
+
+
+    //writing into enroll
     strcpy(new_enroll.course_id, string_response);
-
+    printf("new enroll course id: %s\n", new_enroll.course_id);
     sprintf(new_enroll.roll, "%d", loggedin_student.roll);
-
+    printf("new enroll roll: %s\n", new_enroll.roll);
      
     write(fd_student, &new_enroll, sizeof(new_enroll));   
  
@@ -250,64 +339,18 @@ int enroll_course(struct Student loggedin_student, int client_socket){
 
 
 
-    //update student 
-    int fd_student1 = create_student();
+    strcpy(send_response, "Enrolled course\n\n");
+    strcat(send_response, menu);
+    send(client_socket, send_response, strlen(send_response), 0);
     
-    
-    lock.l_type = F_RDLCK;
-    lock.l_whence = SEEK_SET;
-    lock.l_start = 0;
-    lock.l_len = sizeof(struct Student);
-    lock.l_pid = getpid();
-
-    if (fcntl(fd_student1, F_SETLKW, &lock) == -1) {
-        perror("Error acquiring file lock");
-        close(fd_student1);
-        return 0;
-    }
-    struct Student student;
-    lseek(fd_student, 0, SEEK_SET);
-
-
-    while (read(fd_student1, &student, sizeof(struct Student)) > 0) {
-
-        printf("\n");
-        if(loggedin_student.roll == student.roll){
-            
-            printf("Before updating\n\nRoll: %d\n", student.roll);
-            printf("Username: %s\n", student.username);
-            printf("Enrolled course: %d\n", student.enrolled);
-            printf("Status: %d\n", student.status);
-            
-
-            printf("\nEntered the main logic for 3rd file\n\n");    
-            
-            student.enrolled = student.enrolled + 1;
-    
-            
-            
-            lseek(fd_student, -sizeof(struct Student), SEEK_CUR);
-            write(fd_student, &student, sizeof(student)); 
-
-            strcpy(send_response, "Enrolled course\n\n");
-            strcat(send_response, menu);
-            send(client_socket, send_response, strlen(send_response), 0);
-            
-            printf("After updating\n\nRoll: %d\n", student.roll);
-            printf("Username: %s\n", student.username);
-            printf("Enrolled course: %d\n", student.enrolled);
-            printf("Status: %d\n", student.status);
-            
-            break;
-        }
-
-    }
-
-    lock.l_type=F_UNLCK;
-    fcntl(fd_student,F_SETLKW,&lock);
-    close(fd_student1);
-
-
+    // }
+    //if end
+    // else{
+    //     bzero(send_response, sizeof(send_response));
+    //     strcpy(send_response, "Courses limit reached\n\n");
+    //     strcat(send_response, menu);
+    //     send(client_socket, send_response, strlen(send_response), 0);
+    // }
     //end
 
     return 0;
@@ -315,14 +358,17 @@ int enroll_course(struct Student loggedin_student, int client_socket){
 
 int enrolled_course(struct Student loggedin_student, int client_socket){
 
+    printf("entered enrolled_course function\n\n");
     int fd_course = open("enrolled_course.txt",O_RDWR);
 	if(fd_course == -1){
 		perror("File error");
 	}
     
+
     char string_response[BUFFER_SIZE];
     char course_entries[BUFFER_SIZE];
-    
+    struct Enroll enroll;
+
     struct flock lock;
     lock.l_type = F_RDLCK;
     lock.l_whence = SEEK_SET;
@@ -335,11 +381,12 @@ int enrolled_course(struct Student loggedin_student, int client_socket){
         close(fd_course);
         return 0;
     }
-    struct Enroll enroll;
+    
 
     sprintf(course_entries, "Enrolled courses:\n\n");
 
     while (read(fd_course, &enroll, sizeof(struct Enroll)) > 0) {
+        printf("Student roll: %s\n", enroll.roll);
         if( strcmp(enroll.course_id, "0") !=0 && loggedin_student.roll == atoi(enroll.roll) ){
             // Process the enroll record
             printf("Student roll: %s\n", enroll.roll);
@@ -392,6 +439,9 @@ int drop_course(struct Student loggedin_student, int client_socket){
     printf("Lock acquired on enrolled_course.txt\n");
 
 
+
+
+
     //view enrolled course
     
     sprintf(course_entries, "Enrolled courses:\n\n");
@@ -419,9 +469,7 @@ int drop_course(struct Student loggedin_student, int client_socket){
 
 
 
-    //drop course
-    
-    // send(client_socket, send_response, strlen(send_response), 0);
+
 
     bzero(read_response, sizeof(read_response));
     recv(client_socket, read_response, sizeof(read_response), 0);
@@ -436,6 +484,97 @@ int drop_course(struct Student loggedin_student, int client_socket){
     strcpy(new_enroll.course_id, string_response);
 
     sprintf(new_enroll.roll, "%d", loggedin_student.roll);
+
+
+
+
+
+
+
+    //increase count of course 
+    int fd_course = open("course.txt",O_RDWR);
+	if(fd_course == -1){
+		perror("File error");
+	}
+    else{
+        printf("course file opened successfully");
+    }
+    
+
+    struct Course course;
+    
+    //- sizeof(struct), seek cur
+    printf("Acquiring record lock on Course.txt\n");
+    
+    lock.l_type = F_WRLCK;
+    lock.l_whence = SEEK_END;
+    lock.l_start = 0;
+    lock.l_len = sizeof(struct Course);
+    lock.l_pid = getpid();
+    
+    fcntl(fd_course, F_SETLKW, &lock);
+    printf("Lock acquired on Course.txt\n");
+
+
+    while (read(fd_course, &course, sizeof(struct Course)) > 0) {
+        // Process the course record
+        printf("MAin logic for drop course section\n");
+        printf("Course id: %s\n", course.course_id);
+        printf("Username: %s\n", course.course_name);
+        printf("Name: %s\n", course.dept);
+        printf("Active: %s\n", course.active);
+        printf("total available seats: %s\n", course.avail_seats);
+
+        printf("\n");
+        printf("new enroll course iddddddddddddddddddddddddd: %s\n", new_enroll.course_id);
+
+        if( strcmp(new_enroll.course_id, course.course_id) == 0 ){
+            printf("increased count\n");
+            int temp = atoi(course.avail_seats) + 1;
+            sprintf(course.avail_seats, "%d", temp);
+            
+            lseek(fd_course, -sizeof(struct Course), SEEK_CUR);
+            write(fd_course, &course, sizeof(course)); 
+
+            printf("\n after drop\ntotal available seats: %s\n", course.avail_seats);
+
+            printf("\n");
+            break;
+        }
+
+
+    }
+    
+   
+    
+    lock.l_type=F_UNLCK;
+	fcntl(fd_course,F_SETLKW,&lock);
+    
+    close(fd_course);
+
+
+
+
+
+
+
+    //drop course
+    
+    // send(client_socket, send_response, strlen(send_response), 0);
+
+    // bzero(read_response, sizeof(read_response));
+    // recv(client_socket, read_response, sizeof(read_response), 0);
+
+    // strcpy(string_response,read_response);
+    // printf("%s\n", string_response);
+    
+    // if (strchr(read_response, '\n') != NULL) {
+    //     read_response[strlen(read_response) - 1] = '\0';
+    // }
+
+    // strcpy(new_enroll.course_id, string_response);
+
+    // sprintf(new_enroll.roll, "%d", loggedin_student.roll);
 
     lseek(fd_student, 0, SEEK_SET);
 
@@ -474,66 +613,6 @@ int drop_course(struct Student loggedin_student, int client_socket){
 
 
 
-    //decrease count of course 
-    int fd_course = open("course.txt",O_RDWR);
-	if(fd_course == -1){
-		perror("File error");
-	}
-    else{
-        printf("course file opened successfully");
-    }
-    
-
-    //adding course
-
-    struct Course course;
-    
-    //- sizeof(struct), seek cur
-    printf("Acquiring record lock on Course.txt\n");
-    
-    lock.l_type = F_WRLCK;
-    lock.l_whence = SEEK_END;
-    lock.l_start = 0;
-    lock.l_len = sizeof(struct Course);
-    lock.l_pid = getpid();
-    
-    fcntl(fd_course, F_SETLKW, &lock);
-    printf("Lock acquired on Course.txt\n");
-
-
-    while (read(fd_course, &course, sizeof(struct Course)) > 0) {
-        // Process the course record
-        printf("Course id: %s\n", course.course_id);
-        printf("Username: %s\n", course.course_name);
-        printf("Name: %s\n", course.dept);
-        printf("Active: %s\n", course.active);
-        printf("total available seats: %s\n", course.avail_seats);
-
-        printf("\n");
-
-        if( strcmp(new_enroll.course_id, course.course_id) == 0 ){
-            int temp = atoi(course.avail_seats) + 1;
-            sprintf(course.avail_seats, "%d", temp);
-            
-            lseek(fd_course, -sizeof(struct Course), SEEK_CUR);
-            write(fd_course, &course, sizeof(course)); 
-
-            printf("\n after drop\ntotal available seats: %s\n", course.avail_seats);
-
-            printf("\n");
-            break;
-        }
-
-
-    }
-    
-   
-    
-    lock.l_type=F_UNLCK;
-	fcntl(fd_course,F_SETLKW,&lock);
-    
-    close(fd_course);
-
 
 
     //update student
@@ -567,7 +646,7 @@ int drop_course(struct Student loggedin_student, int client_socket){
 
             printf("\nEntered the main logic for 3rd file\n\n");    
             
-            student.enrolled = student.enrolled + 1;
+            student.enrolled = student.enrolled - 1;
     
             
             

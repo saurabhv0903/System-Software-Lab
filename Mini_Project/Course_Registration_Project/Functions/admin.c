@@ -132,6 +132,21 @@ int add_student(int client_socket){
     new_student.roll = atoi(string_response);
 
 
+    strcpy(send_response, "Enter email for Student: ");
+    send(client_socket, send_response, strlen(send_response), 0);
+
+    bzero(read_response, sizeof(read_response));
+    recv(client_socket, read_response, sizeof(read_response), 0);
+
+    strcpy(string_response,read_response);
+    printf("%s\n", string_response);
+    
+    if (strchr(read_response, '\n') != NULL) {
+        read_response[strlen(read_response) - 1] = '\0';
+    }
+
+    strcpy(new_student.email, string_response);
+
 
     strcpy(send_response, "Enter activation status for Student: ");
     send(client_socket, send_response, strlen(send_response), 0);
