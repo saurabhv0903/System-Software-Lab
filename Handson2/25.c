@@ -1,3 +1,12 @@
+/*
+Name : 25.c
+Author : Saurabh Varade
+Description : Write a program to print a message queue's (use msqid_ds and ipc_perm structures)
+
+Date: 9th October, 2023
+============================================================================
+*/
+
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/ipc.h>

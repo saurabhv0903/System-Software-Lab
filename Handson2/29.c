@@ -1,3 +1,14 @@
+/*
+Name : 29.c
+Author : Saurabh Varade
+Description : Write a program to remove the message queue.
+
+Date: 10th October, 2023
+============================================================================
+*/
+
+
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/ipc.h>

@@ -1,3 +1,14 @@
+/*
+Name : 30.c
+Author : Saurabh Varade
+Description : Write a program to create a shared memory.
+
+Date: 10th October, 2023
+============================================================================
+*/
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
